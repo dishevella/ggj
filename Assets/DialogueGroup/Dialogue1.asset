@@ -13,15 +13,20 @@ MonoBehaviour:
   m_Name: Dialogue1
   m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
   groupId: Group_001
-  startIndex: 0
+  startIndex: 1
   nodes:
-  - content: 
+  - content: '#0 default'
     isLocked: 0
     nextIndex: 0
     tokens: []
     selection: []
-  - content: 
+  - content: '#1 HelloWorld'
     isLocked: 0
-    nextIndex: 0
+    nextIndex: 2
+    tokens: []
+    selection: []
+  - content: '#2 HelloWorld'
+    isLocked: 0
+    nextIndex: -1
     tokens: []
     selection: []
