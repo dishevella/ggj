@@ -19,6 +19,34 @@ public class DialogueManager : MonoBehaviour
     public Button selectionButtonPrefab;      // 选项按钮预制体（里面带 TMP 文本）
 
     // =========================
+    // Presentation UI - Narration
+    // =========================
+    [Header("UI - Narration")]
+    public GameObject narrationRoot;
+    public TextMeshProUGUI narrationContentText;
+
+    // =========================
+    // Presentation UI - Left Speaker
+    // =========================
+    [Header("UI - Left Speaker")]
+    public GameObject leftRoot;
+    public Image leftPortrait;
+    public TextMeshProUGUI leftNameText;
+    public TextMeshProUGUI leftContentText;
+
+    // =========================
+    // Presentation UI - Right Speaker
+    // =========================
+    [Header("UI - Right Speaker")]
+    public GameObject rightRoot;
+    public Image rightPortrait;
+    public TextMeshProUGUI rightNameText;
+    public TextMeshProUGUI rightContentText;
+
+    // 当前用于显示“内容”的 TMP（打字机/探索/跳过都写它）
+    private TextMeshProUGUI _activeContentText;
+
+    // =========================
     // Dialogue Group
     // =========================
     [Header("Dialogue Group")]
@@ -142,6 +170,7 @@ public class DialogueManager : MonoBehaviour
         if (CurrentisLocked)
             autoPlay = false;
 
+        ApplyPresentation(CurrentNode);
         _typingCoroutine = StartCoroutine(TypeLine(CurrentNode.content));
     }
 
@@ -150,22 +179,25 @@ public class DialogueManager : MonoBehaviour
         _isTyping = true;
         _isLineFinished = false;
 
+        var target = _activeContentText != null ? _activeContentText : dialogueText;
+        if (target == null) yield break;
+
         // 1) 一次性设置完整文本（含 <link> / <color>）
-        dialogueText.text = content;
+        target.text = content;
 
         // 2) 强制 TMP 生成 textInfo（解析富文本标签）
-        dialogueText.ForceMeshUpdate();
+        target.ForceMeshUpdate();
 
         // 3) 从 0 个可见字符开始
-        dialogueText.maxVisibleCharacters = 0;
+        target.maxVisibleCharacters = 0;
 
         // TMP 解析后有 characterCount（可见字符计数，不含标签）
-        int totalVisible = dialogueText.textInfo.characterCount;
+        int totalVisible = target.textInfo.characterCount;
 
         // 4) 逐步显示可见字符
         for (int i = 1; i <= totalVisible; i++)
         {
-            dialogueText.maxVisibleCharacters = i;
+            target.maxVisibleCharacters = i;
             yield return new WaitForSeconds(charInterval);
         }
 
@@ -215,10 +247,13 @@ public class DialogueManager : MonoBehaviour
         if (_typingCoroutine != null)
             StopCoroutine(_typingCoroutine);
 
+        var target = _activeContentText != null ? _activeContentText : dialogueText;
+        if (target == null) return;
+
         // 直接显示全句（包括富文本）
-        dialogueText.text = CurrentNode != null ? CurrentNode.content : "";
-        dialogueText.ForceMeshUpdate();
-        dialogueText.maxVisibleCharacters = dialogueText.textInfo.characterCount;
+        target.text = CurrentNode != null ? CurrentNode.content : "";
+        target.ForceMeshUpdate();
+        target.maxVisibleCharacters = target.textInfo.characterCount;
 
         _isTyping = false;
         _isLineFinished = true;
@@ -267,18 +302,20 @@ public class DialogueManager : MonoBehaviour
 
     private bool TryClickExploreWord()
     {
-        if (dialogueText == null) return false;
+        var target = _activeContentText != null ? _activeContentText : dialogueText;
+        if (target == null) return false;
+
         if (CurrentNode == null) return false;
         if (Mouse.current == null) return false;
 
         // ✅ 确保 linkInfo 是最新的（尤其是打字机过程中）
-        dialogueText.ForceMeshUpdate();
+        target.ForceMeshUpdate();
 
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        int linkIndex = TMP_TextUtilities.FindIntersectingLink(dialogueText, mousePos, null);
+        int linkIndex = TMP_TextUtilities.FindIntersectingLink(target, mousePos, null);
         if (linkIndex == -1) return false;
 
-        var linkInfo = dialogueText.textInfo.linkInfo[linkIndex];
+        var linkInfo = target.textInfo.linkInfo[linkIndex];
         string linkId = linkInfo.GetLinkID();
 
         var node = CurrentNode;
@@ -294,8 +331,16 @@ public class DialogueManager : MonoBehaviour
         token.clicked = true;
         
         //======调用结算函数=======
-        //探索完毕当前token，立刻结算获得的东西
-        //OnTokenFound(token)
+        //探索完毕当前token，调用背包系统里面的函数，获得token对应的物品，或者获得对应的线索
+        if(token.getObject != null)
+        {
+            //OnObjectFound(gameObject token.getObject)
+        }
+
+        if(token.getClue != null)
+        {
+            //AddClueToMemo(string token.getClue)
+        }
 
         // 检查是否所有 required token 都点完 → 解锁
         if (node.isLocked)
@@ -316,7 +361,7 @@ public class DialogueManager : MonoBehaviour
 
     private void RefreshContentWithTokenState()
     {
-        if (CurrentNode == null || dialogueText == null) return;
+        if (CurrentNode == null) return;
 
         var node = CurrentNode;
         string raw = node.content;
@@ -342,11 +387,14 @@ public class DialogueManager : MonoBehaviour
             raw = raw.Substring(0, start) + replacedInner + raw.Substring(b);
         }
 
-        dialogueText.text = raw;
-        dialogueText.ForceMeshUpdate();
+        var target = _activeContentText != null ? _activeContentText : dialogueText;
+        if (target == null) return;
+
+        target.text = raw;
+        target.ForceMeshUpdate();
 
         // 刷新后，保持当前“可见字符数” = 全显示（因为通常点击探索词时你希望看到完整句）
-        dialogueText.maxVisibleCharacters = dialogueText.textInfo.characterCount;
+        target.maxVisibleCharacters = target.textInfo.characterCount;
         _isTyping = false;
         _isLineFinished = true;
 
@@ -454,6 +502,93 @@ public class DialogueManager : MonoBehaviour
 
         // 再隐藏 root
         selectionRoot.gameObject.SetActive(false);
+    }
+
+    // ========================
+    // Speaker Information
+    // ========================
+        private DialogueGroupSO.Speaker GetSpeaker(DialogueGroupSO.DialogueNode node)
+    {
+        if (node == null) return null;
+        if (currentGroup == null || currentGroup.speakers == null) return null;
+
+        int i = node.speakerIndex;
+        if (i < 0 || i >= currentGroup.speakers.Count) return null;
+
+        return currentGroup.speakers[i];
+    }
+
+    private void SetAllPresentationOff()
+    {
+        if (narrationRoot != null) narrationRoot.SetActive(false);
+        if (leftRoot != null) leftRoot.SetActive(false);
+        if (rightRoot != null) rightRoot.SetActive(false);
+    }
+
+    private void ApplySpeakerUI(Image portrait, TextMeshProUGUI nameText, Sprite portraitSprite, string name)
+    {
+        if (portrait != null)
+        {
+            bool has = portraitSprite != null;
+            portrait.gameObject.SetActive(has);
+            if (has) portrait.sprite = portraitSprite;
+        }
+
+        if (nameText != null)
+        {
+            bool show = !string.IsNullOrEmpty(name);
+            nameText.gameObject.SetActive(show);
+            nameText.text = name;
+        }
+    }
+
+    private void ApplyPresentation(DialogueGroupSO.DialogueNode node)
+    {
+        SetAllPresentationOff();
+
+        // 默认 fallback（防止没配UI时 NRE）
+        _activeContentText = narrationContentText != null ? narrationContentText : dialogueText;
+
+        if (node == null)
+        {
+            if (narrationRoot != null) narrationRoot.SetActive(true);
+            return;
+        }
+
+        var speaker = GetSpeaker(node);
+
+        // speaker 无效 或 channel=旁白 => 旁白
+        bool isNarration =
+            node.channel == DialogueGroupSO.DialogueChannel.Narration || speaker == null;
+
+        if (isNarration)
+        {
+            if (narrationRoot != null) narrationRoot.SetActive(true);
+            _activeContentText = narrationContentText != null ? narrationContentText : dialogueText;
+            return;
+        }
+
+        // Node override 优先
+        string finalName = !string.IsNullOrEmpty(node.nameOverride)
+            ? node.nameOverride
+            : speaker.displayName;
+
+        Sprite finalPortrait = node.portraitOverride != null
+            ? node.portraitOverride
+            : speaker.defaultPortrait;
+
+        if (node.channel == DialogueGroupSO.DialogueChannel.Left)
+        {
+            if (leftRoot != null) leftRoot.SetActive(true);
+            _activeContentText = leftContentText != null ? leftContentText : dialogueText;
+            ApplySpeakerUI(leftPortrait, leftNameText, finalPortrait, finalName);
+        }
+        else // Right
+        {
+            if (rightRoot != null) rightRoot.SetActive(true);
+            _activeContentText = rightContentText != null ? rightContentText : dialogueText;
+            ApplySpeakerUI(rightPortrait, rightNameText, finalPortrait, finalName);
+        }
     }
 
     // =========================

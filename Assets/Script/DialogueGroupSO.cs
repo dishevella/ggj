@@ -12,6 +12,10 @@ public class DialogueGroupSO : ScriptableObject
     [Header("Nodes")]
     public List<DialogueNode> nodes = new List<DialogueNode>();
 
+    [Header("Speakers")]
+    public List<Speaker> speakers = new List<Speaker>();
+
+
     // =========================
     // Data Types
     // =========================
@@ -30,6 +34,18 @@ public class DialogueGroupSO : ScriptableObject
 
         [Header("Player Selections")]
         public List<PlayerSelection> selection = new List<PlayerSelection>();
+
+        [Header("Presentation")]
+        public DialogueChannel channel = DialogueChannel.Narration;
+
+        // 👉 指向 DialogueGroupSO.speakers 里的某一个（Inspector 下拉）
+        public int speakerIndex = -1; // -1 = 旁白 / 无角色
+
+        [Tooltip("可空：覆盖 speaker 的默认头像")]
+        public Sprite portraitOverride;
+
+        [Tooltip("可空：覆盖 speaker 的名字")]
+        public string nameOverride;
     }
 
     [Serializable]
@@ -43,6 +59,10 @@ public class DialogueGroupSO : ScriptableObject
 
         [Tooltip("Runtime state")]
         public bool clicked = false;
+
+        [Tooltip("Object/Clue gained")]
+        public GameObject getObject;
+        public string getClue;
     }
 
     [Serializable]
@@ -52,4 +72,20 @@ public class DialogueGroupSO : ScriptableObject
         public string content;
         public int targetDialogueIndex;
     }
+
+    [Serializable]
+    public class Speaker
+    {
+        public string id;                  // 内部引用用（可选）
+        public string displayName;          // 显示名（可空 = 不显示）
+        public Sprite defaultPortrait;      // 默认头像（可空）
+    }
+
+    public enum DialogueChannel
+    {
+        Narration,
+        Left,
+        Right
+    }
+
 }
