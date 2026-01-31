@@ -19,9 +19,15 @@ public class DialogueManager : MonoBehaviour
     public GameObject dialogueUIRoot; // 整个对话UI的父物体（建议就是 Canvas 或 DialogueUI）
 
     // Selection UI
-    [Header("SelectionUI")]
-    public Transform selectionRoot;           // 选项按钮父物体
-    public Button selectionButtonPrefab;      // 选项按钮预制体（里面带 TMP 文本）
+    [Header("SelectionButton")]
+    public Button choiceLeft;
+    public TextMeshProUGUI choiceLeftText;
+
+    public Button choiceRight;
+    public TextMeshProUGUI choiceRightText;
+
+    [Header("Fade")]
+    public float fadeDuration = 0.25f;
 
     // =========================
     // Presentation UI - Narration
@@ -113,6 +119,14 @@ public class DialogueManager : MonoBehaviour
     [Header("Pickup Visual (optional)")]
     public Transform pickupSpawnAnchor;   // 生成位置（可拖 Player 或一个空物体）
 
+    // Token 颜色
+    private const string TOKEN_COLOR_DEFAULT = "#DF2328"; // 红
+    private const string TOKEN_COLOR_CLICKED = "#888888"; // 灰
+    
+    private Coroutine _uiDisableCo;
+    private Coroutine _presentSwitchCo;
+    private GameObject _currentPresentationRoot;
+
 
     // =========================
     // Unity
@@ -126,10 +140,6 @@ public class DialogueManager : MonoBehaviour
                 dialogueText.text = "(No Dialogue Group)";
                 dialogueText.maxVisibleCharacters = int.MaxValue;
             }
-
-            if (selectionRoot != null)
-                selectionRoot.gameObject.SetActive(false);
-
                 // ✅ 开局隐藏整套UI
             if (dialogueUIRoot != null)
                 dialogueUIRoot.SetActive(false);
@@ -142,8 +152,7 @@ public class DialogueManager : MonoBehaviour
         int start = (overrideStartIndex >= 0) ? overrideStartIndex : currentGroup.startIndex;
         _currentIndex = Mathf.Clamp(start, 0, currentGroup.nodes.Count - 1);
 
-        if (selectionRoot != null) selectionRoot.gameObject.SetActive(false);
-
+        ClearSelections();
         PlayCurrentNode();
     }
 
@@ -194,7 +203,8 @@ public class DialogueManager : MonoBehaviour
             autoPlay = false;
 
         ApplyPresentation(CurrentNode);
-        _typingCoroutine = StartCoroutine(TypeLine(CurrentNode.content));
+        string display = BuildContentWithTokenColors(CurrentNode);
+        _typingCoroutine = StartCoroutine(TypeLine(display));
     }
 
     IEnumerator TypeLine(string content)
@@ -274,7 +284,7 @@ public class DialogueManager : MonoBehaviour
         if (target == null) return;
 
         // 直接显示全句（包括富文本）
-        target.text = CurrentNode != null ? CurrentNode.content : "";
+        target.text = CurrentNode != null  ? BuildContentWithTokenColors(CurrentNode) : "";
         target.ForceMeshUpdate();
         target.maxVisibleCharacters = target.textInfo.characterCount;
 
@@ -368,7 +378,18 @@ public class DialogueManager : MonoBehaviour
 
         if(token.getClue != null)
         {
-            //AddClueToMemo(string token.getClue)
+            if (!string.IsNullOrWhiteSpace(token.getClue))
+            {
+                if (ClueManager.I == null)
+                {
+                    Debug.LogError("[DialogueManager] ClueManager.I is null. 场景里要放一个 ClueManager。");
+                }
+                else
+                {
+                    bool ok = ClueManager.I.AddClue(token.getClue);
+                    Debug.Log($"[DialogueManager] Add Clue '{token.getClue}' => {ok}");
+                }
+            }
         }
 
         // 检查是否所有 required token 都点完 → 解锁
@@ -388,48 +409,80 @@ public class DialogueManager : MonoBehaviour
         return true;
     }
 
+    // 把 node.content 里所有 <link=id>...</link> 的“内部文字”上色：未点红、已点灰
+    private string BuildContentWithTokenColors(DialogueGroupSO.DialogueNode node)
+    {
+        if (node == null) return "";
+        if (node.tokens == null || node.tokens.Count == 0) return node.content;
+
+        string raw = node.content;
+
+        foreach (var t in node.tokens)
+        {
+            if (t == null || string.IsNullOrWhiteSpace(t.id)) continue;
+
+            string open = $"<link={t.id}>";
+            string close = "</link>";
+
+            int searchFrom = 0;
+
+            // 可能同一个 token 在文本里出现多次，所以用 while 全部处理
+            while (true)
+            {
+                int a = raw.IndexOf(open, searchFrom, StringComparison.Ordinal);
+                if (a < 0) break;
+
+                int b = raw.IndexOf(close, a, StringComparison.Ordinal);
+                if (b < 0) break;
+
+                int innerStart = a + open.Length;
+                string inner = raw.Substring(innerStart, b - innerStart);
+
+                // 如果你手动写过 <color=>，就不覆盖（避免套娃）
+                if (!inner.Contains("<color=", StringComparison.OrdinalIgnoreCase))
+                {
+                    string color = t.clicked ? TOKEN_COLOR_CLICKED : TOKEN_COLOR_DEFAULT;
+                    string replacedInner = $"<color={color}>{inner}</color>";
+
+                    raw = raw.Substring(0, innerStart) + replacedInner + raw.Substring(b);
+                    // 更新 searchFrom：跳过这次处理过的部分，继续往后找
+                    searchFrom = innerStart + replacedInner.Length + close.Length;
+                }
+                else
+                {
+                    // 内部本来就有 color，直接跳过这个 token 出现位置
+                    searchFrom = b + close.Length;
+                }
+            }
+        }
+
+        return raw;
+    }
+
     private void RefreshContentWithTokenState()
     {
         if (CurrentNode == null) return;
 
         var node = CurrentNode;
-        string raw = node.content;
-
-        foreach (var t in node.tokens)
-        {
-            if (!t.clicked) continue;
-
-            string open = $"<link={t.id}>";
-            string close = "</link>";
-
-            int a = raw.IndexOf(open, StringComparison.Ordinal);
-            if (a < 0) continue;
-            int b = raw.IndexOf(close, a, StringComparison.Ordinal);
-            if (b < 0) continue;
-
-            int start = a + open.Length;
-            string inner = raw.Substring(start, b - start);
-
-            if (inner.Contains("<color=")) continue;
-
-            string replacedInner = $"<color=#888888>{inner}</color>";
-            raw = raw.Substring(0, start) + replacedInner + raw.Substring(b);
-        }
+        string display = BuildContentWithTokenColors(node);
 
         var target = _activeContentText != null ? _activeContentText : dialogueText;
         if (target == null) return;
 
-        target.text = raw;
+        target.text = display;
+        target.ForceMeshUpdate();
+        target.maxVisibleCharacters = target.textInfo.characterCount;
+
+        _isTyping = false;
+        _isLineFinished = true;
+
+        if (CurrentHasSelection)
+            EnterSelectionMode();
+
         target.ForceMeshUpdate();
 
         // 刷新后，保持当前“可见字符数” = 全显示（因为通常点击探索词时你希望看到完整句）
         target.maxVisibleCharacters = target.textInfo.characterCount;
-        _isTyping = false;
-        _isLineFinished = true;
-
-        // 若刷新后有选项，确保进入选项模式（避免出现“点探索词后没弹选项”）
-        if (CurrentHasSelection)
-            EnterSelectionMode();
     }
 
     private void ResetExploreStateIfNeeded(DialogueGroupSO.DialogueNode node)
@@ -473,36 +526,48 @@ public class DialogueManager : MonoBehaviour
     // =========================
     private void EnterSelectionMode()
     {
-        if (selectionRoot == null || selectionButtonPrefab == null) return;
-
+        ClearSelections();
         _waitingSelection = true;
         autoPlay = false;
-
-        BuildSelectionButtons();
+        ShowFixedSelections();   // ✅ 用新的固定按钮逻辑
     }
 
-    private void BuildSelectionButtons()
+    private void ShowFixedSelections()
     {
         ClearSelections();
-
-        selectionRoot.gameObject.SetActive(true);
 
         var node = CurrentNode;
         if (node == null || node.selection == null) return;
 
-        foreach (var sel in node.selection)
+        if (node.selection.Count > 0 && choiceLeft != null)
         {
-            var btn = Instantiate(selectionButtonPrefab, selectionRoot);
+            var sel0 = node.selection[0];
+            choiceLeftText.text = sel0.content;
+            choiceLeft.onClick.RemoveAllListeners();
+            choiceLeft.onClick.AddListener(() => OnSelect(sel0));
 
-            // 按钮文字
-            var tmp = btn.GetComponentInChildren<TextMeshProUGUI>();
-            if (tmp != null) tmp.text = sel.content;
-
-            // 绑定点击 → 跳转
-            btn.onClick.RemoveAllListeners();
-            DialogueGroupSO.PlayerSelection captured = sel; // 防止闭包踩坑（老 Unity 版本更稳）
-            btn.onClick.AddListener(() => OnSelect(captured));
+            choiceLeft.gameObject.SetActive(true);
+            FadeIn(choiceLeft.gameObject);
         }
+
+        if (node.selection.Count > 1 && choiceRight != null)
+        {
+            var sel1 = node.selection[1];
+            choiceRightText.text = sel1.content;
+            choiceRight.onClick.RemoveAllListeners();
+            choiceRight.onClick.AddListener(() => OnSelect(sel1));
+
+            choiceRight.gameObject.SetActive(true);
+            FadeIn(choiceRight.gameObject);
+        }
+    }
+
+    private void FadeIn(GameObject go)
+    {
+        var cg = go.GetComponent<CanvasGroup>();
+        if (cg == null) return;
+        cg.alpha = 0f;
+        StartCoroutine(FadeCanvasGroup(cg, 0f, 1f));
     }
 
     private void OnSelect(DialogueGroupSO.PlayerSelection sel)
@@ -523,14 +588,11 @@ public class DialogueManager : MonoBehaviour
 
     private void ClearSelections()
     {
-        if (selectionRoot == null) return;
+        if (choiceLeft != null)
+            choiceLeft.gameObject.SetActive(false);
 
-        // 先删子按钮
-        foreach (Transform t in selectionRoot)
-            Destroy(t.gameObject);
-
-        // 再隐藏 root
-        selectionRoot.gameObject.SetActive(false);
+        if (choiceRight != null)
+            choiceRight.gameObject.SetActive(false);
     }
 
     // ========================
@@ -572,7 +634,7 @@ public class DialogueManager : MonoBehaviour
     }
     private void ApplyPresentation(DialogueGroupSO.DialogueNode node)
     {
-        SetAllPresentationOff();
+        SwitchPresentationRoot(GetTargetRoot(node));
 
         // 如果你还在用文字内容，就保留；如果你之后要全图片对话，这里会改成 _activeContentImage
         _activeContentText = narrationContentText != null ? narrationContentText : dialogueText;
@@ -620,10 +682,53 @@ public class DialogueManager : MonoBehaviour
             ApplySpeakerUI(rightPortrait, rightNameImage, finalNameSprite, finalPortrait);
         }
     }
+    private GameObject GetTargetRoot(DialogueGroupSO.DialogueNode node)
+    {
+        if (node == null) return narrationRoot;
+
+        var speaker = GetSpeaker(node);
+        bool isNarration = node.channel == DialogueGroupSO.DialogueChannel.Narration || speaker == null;
+        if (isNarration) return narrationRoot;
+
+        return (node.channel == DialogueGroupSO.DialogueChannel.Left) ? leftRoot : rightRoot;
+    }
+
+    private void SwitchPresentationRoot(GameObject nextRoot)
+    {
+        if (nextRoot == null) return;
+        if (_currentPresentationRoot == nextRoot && nextRoot.activeSelf) return;
+
+        // ✅ 取消上一次切换协程，防止并发切换
+        if (_presentSwitchCo != null) StopCoroutine(_presentSwitchCo);
+        _presentSwitchCo = StartCoroutine(CoSwitchPresentation(nextRoot));
+    }
+
+    private IEnumerator CoSwitchPresentation(GameObject nextRoot)
+    {
+        // 1) 旧的淡出
+        if (_currentPresentationRoot != null && _currentPresentationRoot != nextRoot)
+        {
+            var oldCg = _currentPresentationRoot.GetComponent<CanvasGroup>();
+            if (oldCg != null)
+                yield return FadeCanvasGroup(oldCg, oldCg.alpha, 0f);
+
+            _currentPresentationRoot.SetActive(false);
+        }
+
+        // 2) 新的淡入
+        nextRoot.SetActive(true);
+        var newCg = nextRoot.GetComponent<CanvasGroup>();
+        if (newCg != null)
+        {
+            newCg.alpha = 0f;
+            yield return FadeCanvasGroup(newCg, 0f, 1f);
+        }
+
+        _currentPresentationRoot = nextRoot;
+    }
 
     public void HideDialogue()
     {
-        // 停止输入与协程
         _isActive = false;
 
         if (_typingCoroutine != null)
@@ -632,17 +737,31 @@ public class DialogueManager : MonoBehaviour
             _typingCoroutine = null;
         }
 
-        // 关子面板
         ClearSelections();
-        SetAllPresentationOff();
+        // 注意：这里别再直接 SetActive(false) 三个 root 了，交给“切换协程”或直接隐藏 UIRoot
+        SetAllPresentationOffImmediate(); // 我下面给你一个“立即关 root”的安全版本（不 fade）
 
-        // 关总面板
         if (dialogueUIRoot != null)
-            dialogueUIRoot.SetActive(false);
-        
+        {
+            // ✅ 取消上一次的延迟关闭（最关键）
+            if (_uiDisableCo != null) StopCoroutine(_uiDisableCo);
+
+            var cg = dialogueUIRoot.GetComponent<CanvasGroup>();
+            if (cg != null)
+                StartCoroutine(FadeCanvasGroup(cg, cg.alpha, 0f));
+
+            _uiDisableCo = StartCoroutine(DisableAfterFade(dialogueUIRoot));
+        }
+
         OnDialogueClosed?.Invoke();
     }
 
+
+    IEnumerator DisableAfterFade(GameObject go)
+    {
+        yield return new WaitForSeconds(fadeDuration);
+        if (go != null) go.SetActive(false);
+    }
 
     // =========================
     // Switch Group at Runtime
@@ -650,56 +769,55 @@ public class DialogueManager : MonoBehaviour
     public void PlayGroup(DialogueGroupSO group)
     {
         _endActionFired = false;
+
         if (group == null || group.nodes == null || group.nodes.Count == 0)
         {
-            // 不要报错炸屏，保持“能跑但不工作”
             currentGroup = null;
-
             if (dialogueText != null)
             {
                 dialogueText.text = "(No Dialogue Group)";
                 dialogueText.maxVisibleCharacters = int.MaxValue;
             }
-
-            autoPlay = false;
-            _waitingSelection = false;
-            _isTyping = false;
-            _isLineFinished = false;
-
-            if (selectionRoot != null) selectionRoot.gameObject.SetActive(false);
-            HideDialogue(); // ✅ 没有内容就直接隐藏
-            _isActive = false; // 继续安全停机
+            HideDialogue();
+            _isActive = false;
             return;
         }
 
-        // 只要点击按钮播放组，就必须恢复系统运行
         _isActive = true;
 
-        // ✅ 打开整套对话UI（开局是隐藏的）
         if (dialogueUIRoot != null)
+        {
+            // ✅ 取消旧的延迟关闭（最关键）
+            if (_uiDisableCo != null) StopCoroutine(_uiDisableCo);
+
             dialogueUIRoot.SetActive(true);
+
+            var cg = dialogueUIRoot.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.alpha = 0f; // 确保从 0 淡入，不会闪
+                StartCoroutine(FadeCanvasGroup(cg, 0f, 1f));
+            }
+        }
 
         OnDialogueOpened?.Invoke();
 
         currentGroup = group;
-
         int start = (overrideStartIndex >= 0) ? overrideStartIndex : group.startIndex;
         _currentIndex = Mathf.Clamp(start, 0, group.nodes.Count - 1);
 
-        // 清理旧状态
         if (_typingCoroutine != null) StopCoroutine(_typingCoroutine);
         _typingCoroutine = null;
 
         _waitingSelection = false;
         autoPlay = false;
-
         _isTyping = false;
         _isLineFinished = false;
 
         ClearSelections();
-
         PlayCurrentNode();
     }
+
 
     // 统一结束入口：保证动作只执行一次
     private void EndDialogue()
@@ -761,6 +879,31 @@ public class DialogueManager : MonoBehaviour
             // prefab 没挂 PickupAnim 就直接给个短命销毁，避免残留
             Destroy(go, 1f);
         }
+    }
+
+    IEnumerator FadeCanvasGroup(CanvasGroup cg, float from, float to)
+    {
+        if (cg == null) yield break;
+
+        cg.alpha = from;
+
+        float t = 0f;
+        while (t < fadeDuration)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(from, to, t / fadeDuration);
+            yield return null;
+        }
+
+        cg.alpha = to;
+    }
+
+    private void SetAllPresentationOffImmediate()
+    {
+        if (narrationRoot != null) narrationRoot.SetActive(false);
+        if (leftRoot != null) leftRoot.SetActive(false);
+        if (rightRoot != null) rightRoot.SetActive(false);
+        _currentPresentationRoot = null;
     }
 
 
