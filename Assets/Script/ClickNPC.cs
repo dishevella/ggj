@@ -1,36 +1,43 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ClickNPC : MonoBehaviour
 {
     [Header("Dialogue")]
     public DialogueGroupSO group;
-    public DialogueManager dialogueManager; // 可拖入；不拖则自动 FindFirstObjectByType
+    public DialogueManager dialogueManager;
 
     [Header("UI Hint")]
-    public GameObject hintUI;              // “点击提示”UI根物体
+    public GameObject hintUI;
     public bool hideHintWhenNoGroup = true;
 
-    [Header("Range (choose one)")]
-    [Tooltip("推荐：给 NPC 加一个 CircleCollider2D (isTrigger=true) 作为交互范围，然后拖到这里")]
-    public Collider2D triggerRange;        // 触发范围（isTrigger=true）
-    [Tooltip("如果不想用 Trigger，可用距离判定")]
-    public Transform player;
-    public float interactRadius = 2.0f;
-    public bool useDistanceFallback = false;
+    [Header("Range")]
+    [Tooltip("交互范围Collider2D（一般是子物体 HintRange），建议 isTrigger=true")]
+    public Collider2D triggerRange;
 
-    [Header("Click Detection")]
-    [Tooltip("NPC 本体需要 Collider2D；这里可选指定，否则自动用 GetComponentInChildren<Collider2D>()")]
+    [Tooltip("玩家 Transform（必须拖）")]
+    public Transform player;
+
+    [Tooltip("当 triggerRange 为空时，使用距离判定")]
+    public bool useDistanceFallback = false;
+    public float interactRadius = 2.0f;
+
+    [Header("Click Detection (Body Only)")]
+    [Tooltip("只把 NPC 身体的 Collider2D 拖进来（ClickRange/BodyCollider）")]
     public Collider2D npcCollider;
-    public LayerMask clickableMask;        // 建议只勾 NPC 层
+
+    [Tooltip("只勾 NPC 身体所在的 Layer（不要把 HintRange 的 Layer 也算进去）")]
+    public LayerMask clickableMask;
 
     [Header("Options")]
     public bool requireInRange = true;
-    public bool allowClickWhenHintHidden = false; // 默认：UI没显示就不允许点
+    public bool allowClickWhenHintHidden = false;
 
     private bool _inRange;
 
     void Awake()
     {
+        // npcCollider 必须是“身体”
         if (npcCollider == null)
             npcCollider = GetComponentInChildren<Collider2D>();
 
@@ -46,44 +53,48 @@ public class ClickNPC : MonoBehaviour
         UpdateRangeState();
         UpdateHintUI();
 
-        if (Input.GetMouseButtonDown(0))
+        if (Mouse.current == null) return;
+        if (!Mouse.current.leftButton.wasPressedThisFrame) return;
+
+        // 1) 必须在范围内
+        if (requireInRange && !_inRange) return;
+
+        // 2) 提示UI不显示就不允许点（你自己控制）
+        if (!allowClickWhenHintHidden && hintUI != null && !hintUI.activeSelf) return;
+
+        // 3) 必须点到“身体Collider”
+        if (!IsClickedBody()) return;
+
+        // 4) 必须有组、有 StateManager
+        if (group == null) return;
+        if (StateManager.I == null)
         {
-            if (requireInRange && !_inRange) return;
-            if (!allowClickWhenHintHidden && hintUI != null && !hintUI.activeSelf) return;
-
-            if (group == null) return;
-            if (dialogueManager == null)
-            {
-                Debug.LogError("[ClickNPC] DialogueManager not found. 请在 Inspector 里拖入或确保场景里有 DialogueManager。");
-                return;
-            }
-
-            if (!IsClickedThisNPC()) return;
-
-            dialogueManager.PlayGroup(group);
+            Debug.LogError("[ClickNPC] StateManager.I is null. 场景里需要有 StateManager 并在 Awake 里赋值 I。");
+            return;
         }
+
+        StateManager.I.TryStartDialogue(group);
     }
 
     void UpdateRangeState()
     {
-        // 方案1：Trigger 范围（推荐，最稳）
-        if (triggerRange != null && triggerRange.isTrigger)
+        // 优先用 triggerRange（最稳）
+        if (triggerRange != null && player != null)
         {
-            // _inRange 会由 OnTriggerEnter2D/Exit2D 维护
+            _inRange = triggerRange.OverlapPoint(player.position);
             return;
         }
 
-        // 方案2：距离 fallback
+        // 备用：距离判定
         if (useDistanceFallback && player != null)
         {
             float dist = Vector2.Distance(player.position, transform.position);
             _inRange = dist <= interactRadius;
+            return;
         }
-        else
-        {
-            // 没有范围手段时：视为一直可交互（你也可以改成 false）
-            _inRange = true;
-        }
+
+        // 没有任何范围手段：默认不可交互（避免“全图都能点”）
+        _inRange = false;
     }
 
     void UpdateHintUI()
@@ -98,41 +109,30 @@ public class ClickNPC : MonoBehaviour
         hintUI.SetActive(shouldShow);
     }
 
-    bool IsClickedThisNPC()
+    bool IsClickedBody()
     {
         if (npcCollider == null) return false;
 
-        // 鼠标屏幕坐标 -> 世界坐标
-        Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Camera cam = Camera.main;
+        if (cam == null) return false;
 
-        // 用 OverlapPoint 精准点选（配合 clickableMask 更稳）
-        Collider2D hit = Physics2D.OverlapPoint(worldPoint, clickableMask);
-        if (hit == null) return false;
+        Vector2 worldPoint = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
 
-        // 允许点到子物体 collider
-        return hit == npcCollider || hit.transform.IsChildOf(npcCollider.transform);
-    }
+        // 用 All：避免点到别的 collider（比如 HintRange）导致误判
+        var hits = Physics2D.OverlapPointAll(worldPoint, clickableMask);
+        if (hits == null || hits.Length == 0) return false;
 
-    // =========================
-    // Trigger Range (2D)
-    // =========================
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (triggerRange == null) return;
+        foreach (var h in hits)
+        {
+            // ✅ 如果你把 triggerRange 的 Layer 也勾进 clickableMask，这里会跳过它
+            if (triggerRange != null && h == triggerRange) continue;
 
-        // 只处理进入 triggerRange 的事件
-        // 注意：triggerRange 一般挂在 NPC 自己或子物体上
-        if (!other.CompareTag("Player")) return;
+            // ✅ 必须命中身体 collider 或其子物体（你有多个身体 collider 时也兼容）
+            if (h == npcCollider || h.transform.IsChildOf(npcCollider.transform))
+                return true;
+        }
 
-        _inRange = true;
-    }
-
-    void OnTriggerExit2D(Collider2D other)
-    {
-        if (triggerRange == null) return;
-        if (!other.CompareTag("Player")) return;
-
-        _inRange = false;
+        return false;
     }
 
 #if UNITY_EDITOR
