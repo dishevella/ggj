@@ -75,6 +75,7 @@ public class StateManager : MonoBehaviour
 
     public bool TryStartDialogue(DialogueGroupSO group)
     {
+        Debug.Log("TryStartDialogue called");
         if (group == null) return false;
         if (dialogueManager == null) return false;
 
