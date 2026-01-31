@@ -8,6 +8,10 @@ public class DialogueGroupSO : ScriptableObject
     [Header("Group Info")]
     public string groupId = "Group_001";
     public int startIndex = 0;
+    
+    [Header("End Action (optional)")]
+    public string itemObjectName;   // 场景里物体名，例如 "Key" 或 "Inventory"
+    public string functionName;     // 要调用的方法名，例如 "GrantKey"
 
     [Header("Nodes")]
     public List<DialogueNode> nodes = new List<DialogueNode>();

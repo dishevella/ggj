@@ -108,6 +108,8 @@ public class DialogueManager : MonoBehaviour
 
     public bool IsOpen => dialogueUIRoot != null && dialogueUIRoot.activeSelf;
 
+    private bool _endActionFired = false;
+
     // =========================
     // Unity
     // =========================
@@ -292,7 +294,7 @@ public class DialogueManager : MonoBehaviour
         if (next == -1)
         {
             _currentIndex = -1;
-            HideDialogue();
+            EndDialogue();
             return;
         }
 
@@ -351,7 +353,7 @@ public class DialogueManager : MonoBehaviour
         //探索完毕当前token，调用背包系统里面的函数，获得token对应的物品，或者获得对应的线索
         if(token.getObject != null)
         {
-            //OnObjectFound(gameObject token.getObject)
+            //AddObject(...)
         }
 
         if(token.getClue != null)
@@ -637,6 +639,7 @@ public class DialogueManager : MonoBehaviour
     // =========================
     public void PlayGroup(DialogueGroupSO group)
     {
+        _endActionFired = false;
         if (group == null || group.nodes == null || group.nodes.Count == 0)
         {
             // 不要报错炸屏，保持“能跑但不工作”
@@ -686,6 +689,40 @@ public class DialogueManager : MonoBehaviour
         ClearSelections();
 
         PlayCurrentNode();
+    }
+
+    // 统一结束入口：保证动作只执行一次
+    private void EndDialogue()
+    {
+        if (_endActionFired) return;
+        _endActionFired = true;
+
+        // ✅ 在真正关闭 UI 前，执行当前节点的结束动作
+        TryInvokeEndAction(currentGroup);
+
+        HideDialogue();
+    }
+
+    private void TryInvokeEndAction(DialogueGroupSO group)
+    {
+        if (group == null) return;
+
+        // 为空就不做任何事
+        if (string.IsNullOrWhiteSpace(group.itemObjectName)) return;
+        if (string.IsNullOrWhiteSpace(group.functionName)) return;
+
+        var go = GameObject.Find(group.itemObjectName);
+        if (go == null)
+        {
+            Debug.LogWarning($"[DialogueManager] EndAction target not found: {group.itemObjectName}");
+            return;
+        }
+
+        // ✅ 调用无参函数：public void FunctionName()
+        go.SendMessage(group.functionName, SendMessageOptions.DontRequireReceiver);
+
+        // 如果你想调用带一个参数的函数，比如 public void AddItem(string id)
+        // 可以把 SendMessage 改成 go.SendMessage(node.functionName, node.itemObjectName, DontRequireReceiver)
     }
 
 }
