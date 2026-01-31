@@ -107,6 +107,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ClickCollection
   part: {fileID: 11400000, guid: 9a6660e5a11faab488df4881e1629b1c, type: 2}
   disableOnCollect: 1
+  group: {fileID: 0}
+  DM: {fileID: 0}
 --- !u!61 &1514794666168037013
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -167,8 +169,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PickupAnim
   sr: {fileID: 6106531117397409707}
   col: {fileID: 1514794666168037013}
-  duration: 0.35
-  popScale: 1.25
+  duration: 1
+  popScale: 2
   liftY: 0.3
   ease:
     serializedVersion: 2

@@ -35,6 +35,7 @@ public class ClickCollection : MonoBehaviour,IPointerClickHandler
         if (eventData.button != PointerEventData.InputButton.Left) return;
         if (part == null) return;
 
+        
         if (group!=null) //★★★
         {
             DM.PlayGroup(group);

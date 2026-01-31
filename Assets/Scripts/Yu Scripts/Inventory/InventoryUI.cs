@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class InventoryUI : MonoBehaviour
 {
@@ -13,9 +14,16 @@ public class InventoryUI : MonoBehaviour
     public bool IsOpen { get; private set; }
     public static event System.Action<bool> OnInventoryOpenChanged;
 
+    [Header("Filter")]
+    public PartType currentFilter = PartType.Eyes;
+
+    bool _inputLocked;
+
     void Awake()
     {
         if (!root) root = GetComponent<CanvasGroup>();
+        if (InventoryManager.I != null)
+            InventoryManager.I.OnChanged += Refresh;
         Close();        
         Refresh();      
     }
@@ -34,8 +42,10 @@ public class InventoryUI : MonoBehaviour
 
     void Update()
     {
+        if (_inputLocked) return;
         if (Input.GetKeyDown(toggleKey))
         {
+            Debug.Log("[Inventory] toggleKey DOWN -> " + toggleKey + "\n" + UnityEngine.StackTraceUtility.ExtractStackTrace());
             if (IsOpen) Close();
             else Open();
         }
@@ -43,6 +53,7 @@ public class InventoryUI : MonoBehaviour
 
     public void Open()
     {
+        Debug.Log("[Inventory] Open() CALLED\n" + UnityEngine.StackTraceUtility.ExtractStackTrace());
         IsOpen = true;
         root.alpha = 1;
         root.blocksRaycasts = true;   
@@ -61,20 +72,42 @@ public class InventoryUI : MonoBehaviour
         OnInventoryOpenChanged?.Invoke(false);
     }
 
+    public void SetInputLocked(bool locked)
+    {
+        _inputLocked = locked;
+    }
+
+    public void SetFilter(PartType type)
+    {
+        currentFilter = type;
+        Debug.Log($"[InventoryUI] SetFilter -> {currentFilter}");
+        Refresh();
+    }
     public void Refresh()
     {
-        
+        // 清空 slots
         for (int i = 0; i < slots.Length; i++)
             slots[i].Bind(null, tooltip);
 
         tooltip?.Hide();
 
-        
         if (InventoryManager.I == null) return;
 
-        var list = InventoryManager.I.parts;
-        int n = Mathf.Min(list.Count, slots.Length);
-        for (int i = 0; i < n; i++)
-            slots[i].Bind(list[i], tooltip);
+        var all = InventoryManager.I.parts;
+        int slotIndex = 0;
+
+        for (int i = 0; i < all.Count; i++)
+        {
+            var p = all[i];
+            if (p == null) continue;
+            if (p.type != currentFilter) continue;
+
+            if (slotIndex >= slots.Length) break;
+            slots[slotIndex].Bind(p, tooltip);
+            slotIndex++;
+        }
+
+        Debug.Log($"[InventoryUI] Filter={currentFilter}, shown={slotIndex}, total={all.Count}");
     }
+
 }

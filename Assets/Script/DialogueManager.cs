@@ -57,6 +57,11 @@ public class DialogueManager : MonoBehaviour
     // 当前用于显示“内容”的 TMP（打字机/探索/跳过都写它）
     private TextMeshProUGUI _activeContentText;
 
+
+    [Header("Special Visibility")]
+    public GameObject specialObject; // 你的特殊物体
+
+
     // =========================
     // Dialogue Group
     // =========================
@@ -154,6 +159,7 @@ public class DialogueManager : MonoBehaviour
 
         ClearSelections();
         PlayCurrentNode();
+        RefreshSpecial();
     }
 
     void Update()
@@ -255,6 +261,14 @@ public class DialogueManager : MonoBehaviour
                 GoNext();
         }
     }
+
+    void RefreshSpecial()
+    {
+        if (specialObject == null) return;
+        bool rightActive = (rightRoot != null) && rightRoot.activeInHierarchy;
+        specialObject.SetActive(!rightActive);
+    }
+
 
     // =========================
     // Input Logic
@@ -725,6 +739,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         _currentPresentationRoot = nextRoot;
+        RefreshSpecial();
     }
 
     public void HideDialogue()
@@ -905,7 +920,4 @@ public class DialogueManager : MonoBehaviour
         if (rightRoot != null) rightRoot.SetActive(false);
         _currentPresentationRoot = null;
     }
-
-
-
 }
