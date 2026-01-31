@@ -20,13 +20,37 @@ MonoBehaviour:
     nextIndex: 0
     tokens: []
     selection: []
+    channel: 1
+    speakerIndex: -1
+    portraitOverride: {fileID: 0}
+    nameOverride: 
   - content: '#1 HelloWorld'
     isLocked: 0
     nextIndex: 2
     tokens: []
     selection: []
+    channel: 0
+    speakerIndex: -1
+    portraitOverride: {fileID: 0}
+    nameOverride: 
   - content: '#2 HelloWorld'
     isLocked: 0
     nextIndex: -1
-    tokens: []
+    tokens:
+    - id: 
+      required: 0
+      clicked: 0
+      getObject: {fileID: 0}
+      getClue: 
     selection: []
+    channel: 0
+    speakerIndex: -1
+    portraitOverride: {fileID: 0}
+    nameOverride: 
+  speakers:
+  - id: 1
+    displayName: You
+    defaultPortrait: {fileID: 0}
+  - id: 2
+    displayName: Police
+    defaultPortrait: {fileID: 0}

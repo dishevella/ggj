@@ -12,4 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd7f7401b0b58404aa0073fa1272c1a5, type: 3}
   m_Name: SceneGraphSO
   m_EditorClassIdentifier: Assembly-CSharp::SceneGraphSO
-  nodes: []
+  nodes:
+  - nodeId: 0
+    backgroundSprite: {fileID: 0}
+    spawnPoints: []
+    neighbors: []
+    nodeLocked: 0
+  - nodeId: 0
+    backgroundSprite: {fileID: 0}
+    spawnPoints: []
+    neighbors: []
+    nodeLocked: 0
