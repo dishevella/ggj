@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
   groupId: "\u72F1\u8B66\u5BF9\u8BDD"
   startIndex: 1
+  itemObjectName: 
+  functionName: 
   nodes:
   - content: 
     isLocked: 0
@@ -119,5 +121,8 @@ MonoBehaviour:
     displayName: {fileID: -1932790258518610280, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
     defaultPortrait: {fileID: -4502668526669219185, guid: e55ee86333740194cab71e4bb3844b3d, type: 3}
   - id: 1
+    displayName: {fileID: 7519076115162389682, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
+    defaultPortrait: {fileID: -4509999187885996813, guid: 6e92a80013db7024c841ef6f76055d1e, type: 3}
+  - id: 2
     displayName: {fileID: 7519076115162389682, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
     defaultPortrait: {fileID: -4509999187885996813, guid: 6e92a80013db7024c841ef6f76055d1e, type: 3}
