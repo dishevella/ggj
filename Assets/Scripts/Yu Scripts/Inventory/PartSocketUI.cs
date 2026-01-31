@@ -2,13 +2,7 @@
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-/// <summary>
-/// 角色部位槽位：支持拖拽装备、替换、右键卸下
-/// - 拖入一个 Part：若类型匹配，则装备
-/// - 若槽位已有装备：先把旧装备退回背包（背包满/重复则拒绝替换，防丢）
-/// - 装备成功：从背包移除该 part，更新槽位图片，写入 PlayerExpressionState
-/// - 右键点击槽位：卸下当前装备并放回背包（背包满/重复则拒绝卸下）
-/// </summary>
+
 public class PartSocketUI : MonoBehaviour,
     IDropHandler, IPointerEnterHandler, IPointerClickHandler
 {
@@ -24,7 +18,7 @@ public class PartSocketUI : MonoBehaviour,
     [Tooltip("装备后图片颜色(一般保持白色)")]
     public Color equippedColor = Color.white;
 
-    // 当前槽位装备的部件（用于替换/卸下）
+   
     PartDefinition _equipped;
 
     void Awake()
@@ -37,9 +31,7 @@ public class PartSocketUI : MonoBehaviour,
         Debug.Log("[Socket] PointerEnter: " + gameObject.name);
     }
 
-    /// <summary>
-    /// 右键卸下
-    /// </summary>
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Right) return;
@@ -71,9 +63,7 @@ public class PartSocketUI : MonoBehaviour,
         FindFirstObjectByType<InventoryUI>()?.Refresh();
     }
 
-    /// <summary>
-    /// 拖拽装备
-    /// </summary>
+ 
     public void OnDrop(PointerEventData eventData)
     {
         Debug.Log("[Socket] OnDrop: " + gameObject.name);
@@ -91,7 +81,7 @@ public class PartSocketUI : MonoBehaviour,
 
         Debug.Log("[Socket] accept=" + acceptType + " partType=" + part.type);
 
-        // 类型不匹配直接拒绝
+        
         if (part.type != acceptType)
         {
             Debug.Log("[Socket] type mismatch -> reject");
@@ -104,14 +94,14 @@ public class PartSocketUI : MonoBehaviour,
             return;
         }
 
-        // ✅ 如果拖入的是当前已经装备的同一个对象，直接忽略
+        
         if (_equipped == part)
         {
             Debug.Log("[Socket] same part already equipped -> ignore");
             return;
         }
 
-        // ✅ 1) 若槽位已有装备：先退回背包（失败则拒绝替换，防丢）
+       
         if (_equipped != null)
         {
             bool backOk = InventoryManager.I != null && InventoryManager.I.Add(_equipped);
@@ -124,7 +114,7 @@ public class PartSocketUI : MonoBehaviour,
             }
         }
 
-        // ✅ 2) 从背包移除新装备（若移除失败则拒绝，防止复制/异常）
+        
         bool removed = InventoryManager.I != null && InventoryManager.I.Remove(part.id);
         Debug.Log("[Socket] removedFromBag=" + removed);
 
@@ -134,7 +124,7 @@ public class PartSocketUI : MonoBehaviour,
             return;
         }
 
-        // ✅ 3) 更新槽位图片显示
+        
         var spriteToEquip = part.equipSprite ? part.equipSprite : part.originalSprite;
         Debug.Log("[Socket] spriteToEquip=" + (spriteToEquip ? spriteToEquip.name : "NULL"));
 
@@ -142,31 +132,27 @@ public class PartSocketUI : MonoBehaviour,
         targetImage.enabled = true;
         targetImage.color = equippedColor;
 
-        // ✅ 4) 记录装备 + 写入 expressionState
+       
         _equipped = part;
         expressionState?.Equip(part);
 
-        // ✅ 5) 刷新背包 UI
+       
         FindFirstObjectByType<InventoryUI>()?.Refresh();
     }
 
-    // -----------------------
-    // Helper: Visual states
-    // -----------------------
+ 
     void SetEmptyVisual()
     {
         if (!targetImage) return;
 
         targetImage.sprite = null;
-        targetImage.enabled = true; // 保留用于接收 drop
+        targetImage.enabled = true; 
         var c = targetImage.color;
         c.a = emptyAlpha;
         targetImage.color = c;
     }
 
-    /// <summary>
-    /// 可选：外部（加载存档/重进场景）手动设置当前装备并刷新UI
-    /// </summary>
+ 
     public void SetEquipped(PartDefinition part)
     {
         _equipped = part;

@@ -6,7 +6,7 @@ public class PlayerExpressionState : MonoBehaviour
     public PartDefinition equippedNose;
     public PartDefinition equippedMouth;
     public PartDefinition equippedOther;
-
+    public event System.Action OnChanged;
     public EmotionVector GetTotal()
     {
         EmotionVector total = EmotionVector.Zero;
@@ -28,6 +28,7 @@ public class PlayerExpressionState : MonoBehaviour
             case PartType.Mouth: equippedMouth = part; break;
             case PartType.Other: equippedOther = part; break;
         }
+        OnChanged?.Invoke();
     }
     public void Unequip(PartType type)
     {
@@ -49,6 +50,7 @@ public class PlayerExpressionState : MonoBehaviour
                 equippedOther = null;
                 break;
         }
+        OnChanged?.Invoke();
     }
 
 

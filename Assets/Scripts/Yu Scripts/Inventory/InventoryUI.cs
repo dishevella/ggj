@@ -17,6 +17,8 @@ public class InventoryUI : MonoBehaviour
     [Header("Filter")]
     public PartType currentFilter = PartType.Eyes;
 
+    bool _inputLocked;
+
     void Awake()
     {
         if (!root) root = GetComponent<CanvasGroup>();
@@ -40,8 +42,10 @@ public class InventoryUI : MonoBehaviour
 
     void Update()
     {
+        if (_inputLocked) return;
         if (Input.GetKeyDown(toggleKey))
         {
+            Debug.Log("[Inventory] toggleKey DOWN -> " + toggleKey + "\n" + UnityEngine.StackTraceUtility.ExtractStackTrace());
             if (IsOpen) Close();
             else Open();
         }
@@ -49,6 +53,7 @@ public class InventoryUI : MonoBehaviour
 
     public void Open()
     {
+        Debug.Log("[Inventory] Open() CALLED\n" + UnityEngine.StackTraceUtility.ExtractStackTrace());
         IsOpen = true;
         root.alpha = 1;
         root.blocksRaycasts = true;   
@@ -65,6 +70,11 @@ public class InventoryUI : MonoBehaviour
         root.interactable = false;
         tooltip?.Hide();
         OnInventoryOpenChanged?.Invoke(false);
+    }
+
+    public void SetInputLocked(bool locked)
+    {
+        _inputLocked = locked;
     }
 
     public void SetFilter(PartType type)

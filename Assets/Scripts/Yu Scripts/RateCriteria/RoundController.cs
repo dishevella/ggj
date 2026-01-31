@@ -26,29 +26,48 @@ public class RoundController : MonoBehaviour
 
     float _timeLeft;
     bool _running;
-    
+
+    [Header("UI Rules")]
+    public bool showSubmitOnlyWhenInventoryOpen = true;
+    [Header("After Result")]
+    public float resultShowSeconds = 2f;     // 结果显示多久后消失
+    public bool hideTimerAfterResult = true; // 是否隐藏倒计时文字
+    public bool autoNextRoundOnFail = false; // 失败但没死：是否自动下一轮
+    public float nextRoundDelay = 1.0f;      // 下一轮延迟
+    Coroutine _resultCR;
+
 
     void Awake()
     {
         if (submitButton) submitButton.onClick.AddListener(Submit);
+        InventoryUI.OnInventoryOpenChanged += OnInventoryOpenChanged;
         ShowMemo(true);
         LockBackground(true);
         SetResult(false, "");
         UpdateTimerUI(roundSeconds);
+        var inv = FindFirstObjectByType<InventoryUI>();
+        OnInventoryOpenChanged(inv != null && inv.IsOpen);
     }
     void Start()
     {
-        
         StartRound();
     }
     public void StartRound()
     {
+        //FindFirstObjectByType<InventoryUI>()?.SetInputLocked(false);
+        SetTimerVisible(true);
         _timeLeft = roundSeconds;
         _running = true;
         ShowMemo(false);
         LockBackground(false);
         SetResult(false, "");
         UpdateTimerUI(_timeLeft);
+        if (submitButton && submitButton.gameObject.activeSelf)
+            submitButton.interactable = true;
+    }
+    void OnDestroy()
+    {
+        InventoryUI.OnInventoryOpenChanged -= OnInventoryOpenChanged;
     }
 
     void Update()
@@ -66,6 +85,19 @@ public class RoundController : MonoBehaviour
             EvaluateAndApply(auto: true);
         }
     }
+    void OnInventoryOpenChanged(bool open)
+    {
+        if (!showSubmitOnlyWhenInventoryOpen) return;
+
+        if (submitButton)
+        {
+            // 背包开 -> 显示；背包关 -> 隐藏
+            submitButton.gameObject.SetActive(open);
+
+            // 可选：如果你希望“背包开但当前不在回合中”也不能点
+            submitButton.interactable = open && _running;
+        }
+    }
 
     public void Submit()
     {
@@ -77,6 +109,8 @@ public class RoundController : MonoBehaviour
 
     void EvaluateAndApply(bool auto)
     {
+        //FindFirstObjectByType<InventoryUI>()?.SetInputLocked(true);
+        if (submitButton) submitButton.interactable = false;
         // 1) 计算玩家当前总五维
         EmotionVector playerVec = player.GetTotal();
 
@@ -102,15 +136,15 @@ public class RoundController : MonoBehaviour
 
         // 5) 结果展示
         LockBackground(true);
-
+        bool dead = false;
         if (pass)
         {
-            SetResult(true, $"PASS\n偏差={totalDev}");
+            SetResult(true, $"PASS\nDeviation={totalDev}");
             // TODO: 播放结束动画 / 进入下一关
         }
         else
         {
-            bool dead = (vital != null && vital.IsDead);
+            dead = (vital != null && vital.IsDead);
             if (dead)
             {
                 SetResult(true, $"FAIL (GAME OVER)\n Deviation ={totalDev}\nDeduction={dmg}");
@@ -124,10 +158,47 @@ public class RoundController : MonoBehaviour
                 //Invoke(nameof(StartRoundWithMemo), 1.0f);
             }
         }
+        if (_resultCR != null) StopCoroutine(_resultCR);
+        _resultCR = StartCoroutine(Co_AfterResult(pass, dead));
 
         Debug.Log($"[Round] auto={auto} pass={pass} totalDev={totalDev} dmg={dmg} " +
                   $"player={playerVec} target={boss.target}");
     }
+    void SetTimerVisible(bool show)
+{
+    if (!timerText) return;
+    timerText.gameObject.SetActive(show);
+}
+
+void HideResultAndTimer()
+{
+    SetResult(false, "");
+    if (hideTimerAfterResult) SetTimerVisible(false);
+}
+
+System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
+{
+    // 等一会让玩家看到结果
+    yield return new WaitForSeconds(resultShowSeconds);
+
+    // 隐藏结果 & 倒计时
+    HideResultAndTimer();
+
+    // 这里决定下一步做什么（按你想要的流程）
+    if (dead)
+    {
+        // Game Over：你可以在这里回主菜单/重开等
+        yield break;
+    }
+
+    if (!pass && autoNextRoundOnFail)
+    {
+        // 失败但没死：自动下一轮
+        yield return new WaitForSeconds(nextRoundDelay);
+        StartRoundWithMemo(); // 或 StartRound()
+    }
+    // pass 的话：你可以在这里进入下一关 / 播动画
+}
 
     void StartRoundWithMemo()
     {
@@ -159,5 +230,6 @@ public class RoundController : MonoBehaviour
     {
         if (resultPanel) resultPanel.SetActive(show);
         if (resultText) resultText.text = text;
+
     }
 }
