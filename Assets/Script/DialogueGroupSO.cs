@@ -64,9 +64,11 @@ public class DialogueGroupSO : ScriptableObject
         [Tooltip("Runtime state")]
         public bool clicked = false;
 
-        [Tooltip("Object/Clue gained")]
-        public GameObject getObject;
+        [Tooltip("Item gained (added to InventoryManager)")]
+        public PartDefinition getPart;   // ✅ 直接存 PartDefinition
         public string getClue;
+        public GameObject pickupAnimPrefab;
+
     }
 
     [Serializable]

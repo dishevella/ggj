@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
   groupId: Group_001
   startIndex: 1
+  itemObjectName: 
+  functionName: 
   nodes:
   - content: '#0 default'
     isLocked: 0

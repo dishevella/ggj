@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: PartDefinition
   m_EditorClassIdentifier: Assembly-CSharp::PartDefinition
   id: Eyes_01
+  type: 0
   originalSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}
   hintSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}
+  equipSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}

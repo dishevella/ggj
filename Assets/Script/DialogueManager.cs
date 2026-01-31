@@ -110,6 +110,10 @@ public class DialogueManager : MonoBehaviour
 
     private bool _endActionFired = false;
 
+    [Header("Pickup Visual (optional)")]
+    public Transform pickupSpawnAnchor;   // 生成位置（可拖 Player 或一个空物体）
+
+
     // =========================
     // Unity
     // =========================
@@ -351,9 +355,15 @@ public class DialogueManager : MonoBehaviour
         
         //======调用结算函数=======
         //探索完毕当前token，调用背包系统里面的函数，获得token对应的物品，或者获得对应的线索
-        if(token.getObject != null)
+        if (token.getPart != null)
         {
-            //AddObject(...)
+            bool ok = InventoryManager.I != null && InventoryManager.I.Add(token.getPart);
+            Debug.Log($"[DialogueManager] Add Part '{token.getPart.id}' => {ok}");
+
+            if (ok)
+            {
+                SpawnPickupVisual(token); // ✅ 新增：生成一个“凭空出现的拾取动画”
+            }
         }
 
         if(token.getClue != null)
@@ -724,5 +734,35 @@ public class DialogueManager : MonoBehaviour
         // 如果你想调用带一个参数的函数，比如 public void AddItem(string id)
         // 可以把 SendMessage 改成 go.SendMessage(node.functionName, node.itemObjectName, DontRequireReceiver)
     }
+
+    void SpawnPickupVisual(DialogueGroupSO.SearchToken token)
+    {
+        if (token == null) return;
+
+        // 优先用 token 自己的 prefab；没有就用全局默认
+        GameObject prefab = token.pickupAnimPrefab;
+
+        if (prefab == null) return;
+
+        Vector3 pos = Vector3.zero;
+        if (pickupSpawnAnchor != null) pos = pickupSpawnAnchor.position;
+        else pos = transform.position; // 兜底：没锚点就用DialogueManager的位置（你也可换成玩家位置）
+
+        GameObject go = Instantiate(prefab, pos, Quaternion.identity);
+
+        // 关键：播放后让它自己消失
+        var anim = go.GetComponent<PickupAnim>();
+        if (anim != null)
+        {
+            anim.PlayAndDisable(() => Destroy(go)); // ✅ 播完禁用后销毁实例
+        }
+        else
+        {
+            // prefab 没挂 PickupAnim 就直接给个短命销毁，避免残留
+            Destroy(go, 1f);
+        }
+    }
+
+
 
 }

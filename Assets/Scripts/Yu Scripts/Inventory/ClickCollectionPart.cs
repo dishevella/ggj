@@ -7,6 +7,9 @@ public class ClickCollection : MonoBehaviour,IPointerClickHandler
     public bool disableOnCollect = true;
     PickupAnim anim;
     bool _inventoryOpen;
+    public DialogueGroupSO group;  //★★★
+    public DialogueManager DM;  //★★★
+
     void Awake()
     {
         anim = GetComponent<PickupAnim>();
@@ -31,6 +34,12 @@ public class ClickCollection : MonoBehaviour,IPointerClickHandler
         if (_inventoryOpen) return;
         if (eventData.button != PointerEventData.InputButton.Left) return;
         if (part == null) return;
+
+        if (group!=null) //★★★
+        {
+            DM.PlayGroup(group);
+        }
+    
         bool ok = InventoryManager.I.Add(part);
         if(ok)
         {
