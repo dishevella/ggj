@@ -36,6 +36,11 @@ public class BackgroundSceneManager : MonoBehaviour
     public int currentNodeId;
     private SceneGraphSO.SceneNode _currentNode;
 
+    public System.Action<bool, bool> OnReachabilityChanged; // left, right
+
+    private bool _lastCanLeft;
+    private bool _lastCanRight;
+
     void Start()
     {
         ForceEnter(startNodeId, startSpawnIndex);
@@ -85,6 +90,69 @@ public class BackgroundSceneManager : MonoBehaviour
         _nextAllowedTransitionTime = Time.time + transitionCooldown;
         ForceEnter(link.neighborNodeId, link.enterSpawnIndex);
     }
+
+    public bool CanGo(LinkDirection dir)
+    {
+        if (graph == null) return false;
+        if (_currentNode == null) return false;
+        if (_currentNode.nodeLocked) return false;
+
+        if (!graph.TryGetLink(currentNodeId, dir, out SceneGraphSO.NeighborLink link) || link == null)
+            return false;
+
+        return !link.locked;
+    }
+
+    public bool CanGoLeft()  => CanGo(LinkDirection.Left);
+    public bool CanGoRight() => CanGo(LinkDirection.Right);
+
+    public bool SetNeighborLocked(LinkDirection dir, bool locked)
+    {
+        if (graph == null)
+        {
+            Debug.LogWarning("[BackgroundSceneManager] graph is null.");
+            return false;
+        }
+
+        var node = graph.GetNode(currentNodeId);
+        if (node == null)
+        {
+            Debug.LogWarning("[BackgroundSceneManager] current node is null.");
+            return false;
+        }
+
+        // 找到这条边并修改 locked
+        for (int i = 0; i < node.neighbors.Count; i++)
+        {
+            var l = node.neighbors[i];
+            if (l != null && l.direction == dir)
+            {
+                l.locked = locked;
+
+                // 立刻刷新墙 + UI
+                UpdateWalls();
+                NotifyReachabilityIfChanged(force: true);
+                return true;
+            }
+        }
+
+        Debug.LogWarning($"[BackgroundSceneManager] No link on {dir} from node {currentNodeId}.");
+        return false;
+    }
+
+    void NotifyReachabilityIfChanged(bool force = false)
+    {
+        bool canL = CanGo(LinkDirection.Left);
+        bool canR = CanGo(LinkDirection.Right);
+
+        if (force || canL != _lastCanLeft || canR != _lastCanRight)
+        {
+            _lastCanLeft = canL;
+            _lastCanRight = canR;
+            OnReachabilityChanged?.Invoke(canL, canR);
+        }
+    }
+
 
     void SnapBackIntoBounds(LinkDirection dir)
     {
@@ -138,6 +206,9 @@ public class BackgroundSceneManager : MonoBehaviour
 
         // 更新空气墙
         UpdateWalls();
+        
+        // ⭐加这一行：刷新箭头显示
+        NotifyReachabilityIfChanged(force: true);
 
         // 解冻移动（可选）
         if (freezePlayerDuringEnter && playerController != null)
@@ -189,3 +260,8 @@ public class BackgroundSceneManager : MonoBehaviour
         wall.offset = Vector2.zero;
     }
 }
+
+
+//上锁与解锁：
+//sceneManager.SetNeighborLocked(LinkDirection.Left, false); // 解锁左边
+//sceneManager.SetNeighborLocked(LinkDirection.Right, true); // 上锁右边
