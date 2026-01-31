@@ -1,5 +1,7 @@
 using UnityEngine;
 
+public enum PartType { Eyes, Nose, Mouth, Other}
+
 [CreateAssetMenu(menuName = "Part Definition")]
 public class PartDefinition : ScriptableObject
 {
@@ -7,6 +9,7 @@ public class PartDefinition : ScriptableObject
     public PartType type;
     public Sprite originalSprite;
     public Sprite hintSprite;
+    public Sprite equipSprite;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

@@ -1,29 +1,26 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 
 public class ItemTooltipFollow : MonoBehaviour
 {
-    public Canvas canvas;          
+    public Canvas canvas;
     public CanvasGroup group;
     public Text idText;
     public Image hintImage;
 
-    public Vector2 offset = new(18f, -18f); 
-    RectTransform _rt;
-    RectTransform _parentRt;
-    RectTransform _canvasRt;
-    Camera _uiCam;
+    public Vector2 offset = new Vector2(18f, -18f);
 
+    RectTransform _rt;
+    RectTransform _parentRt;   //  tooltip çš„çˆ¶ç‰©ä½“
+    Camera _uiCam;
     bool _visible;
 
     void Awake()
     {
         _rt = (RectTransform)transform;
-
-        // ¹Ø¼ü£ºanchoredPosition ÊÇÏà¶Ô¸¸ÎïÌåµÄ£¬ËùÒÔÓÃ¸¸ÎïÌåRect×ö×ø±ê×ª»»
         _parentRt = _rt.parent as RectTransform;
 
-        _canvasRt = (RectTransform)canvas.transform;
+        // Overlay => camera = null
         _uiCam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
 
         Hide();
@@ -37,10 +34,13 @@ public class ItemTooltipFollow : MonoBehaviour
 
     public void Show(string id, Sprite hint)
     {
-        idText.text = id;
+        if (idText) idText.text = id;
 
-        hintImage.sprite = hint;
-        hintImage.enabled = (hint != null);
+        if (hintImage)
+        {
+            hintImage.sprite = hint;
+            hintImage.enabled = (hint != null);
+        }
 
         group.alpha = 1;
         group.blocksRaycasts = false;
@@ -60,35 +60,44 @@ public class ItemTooltipFollow : MonoBehaviour
 
     void FollowMouse()
     {
-        // ÓÃ¸¸ÎïÌåµÄRectTransformËãlocalPos£¨×ø±êÏµ¶ÔÆë£©
-        var bounds = _parentRt != null ? _parentRt : _canvasRt;
+        if (_parentRt == null || _rt == null) return;
 
+        // 1) é¼ æ ‡å±å¹•åæ ‡ -> çˆ¶ç‰©ä½“æœ¬åœ°åæ ‡
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            bounds, Input.mousePosition, _uiCam, out Vector2 localPos);
+            _parentRt, Input.mousePosition, _uiCam, out Vector2 localPos);
 
-        Vector2 pos = localPos + offset;
-        pos = ClampToBounds(pos, bounds);
+        // 2) åŠ  offsetï¼ˆå³ä¸‹ï¼šx æ­£ï¼Œy è´Ÿï¼‰
+        Vector2 target = localPos + offset;
 
-        _rt.anchoredPosition = pos;
+        // 3) Clampï¼šä¸è®© tooltip è¶…å‡ºçˆ¶ç‰©ä½“èŒƒå›´
+        target = ClampToParent(target);
+
+        _rt.anchoredPosition = target;
     }
 
-    Vector2 ClampToBounds(Vector2 pos, RectTransform bounds)
+    Vector2 ClampToParent(Vector2 anchoredPos)
     {
-        Rect r = bounds.rect;
-        float w = _rt.rect.width;
-        float h = _rt.rect.height;
+        // çˆ¶ç‰©ä½“çŸ©å½¢ï¼ˆæœ¬åœ°åæ ‡ï¼‰
+        Rect parentRect = _parentRt.rect;
 
-        // Pivot Í¨ÓÃ£º¼ÆËãËÄ¸ö·½ÏòÏà¶Ô pivot µÄÍâÀ©
-        Vector2 pv = _rt.pivot;
-        float left = w * pv.x;
-        float right = w * (1f - pv.x);
-        float bottom = h * pv.y;
-        float top = h * (1f - pv.y);
+        // tooltip è‡ªå·±çš„å°ºå¯¸
+        Vector2 size = _rt.rect.size;
 
-        pos.x = Mathf.Clamp(pos.x, r.xMin + left, r.xMax - right);
-        pos.y = Mathf.Clamp(pos.y, r.yMin + bottom, r.yMax - top);
+        // pivot å½±å“â€œå·¦/å³ã€ä¸Š/ä¸‹â€éœ€è¦ç•™å¤šå°‘è¾¹è·
+        Vector2 pivot = _rt.pivot;
 
-        return pos;
+        // å…è®¸çš„æœ€å°/æœ€å¤§ä½ç½®ï¼ˆä¿è¯ tooltip æ•´ä¸ªéƒ½åœ¨ parentRect å†…ï¼‰
+        float minX = parentRect.xMin + size.x * pivot.x;
+        float maxX = parentRect.xMax - size.x * (1f - pivot.x);
+
+        float minY = parentRect.yMin + size.y * pivot.y;
+        float maxY = parentRect.yMax - size.y * (1f - pivot.y);
+
+        anchoredPos.x = Mathf.Clamp(anchoredPos.x, minX, maxX);
+        anchoredPos.y = Mathf.Clamp(anchoredPos.y, minY, maxY);
+
+        return anchoredPos;
     }
+
 }
 

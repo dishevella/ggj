@@ -21,7 +21,22 @@ public class InventoryManager : MonoBehaviour
         parts.Add(part);
         OnChanged?.Invoke();
         return true;
+    }
+    public bool Remove(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return false;
+        for(int i=0; i< parts.Count; i++)
+        {
+            var p = parts[i];
+            if(p!=null && p.id == id)
+            {
+                parts.RemoveAt(i);
+                OnChanged?.Invoke();
+                return true;
             }
+        }
+        return false;
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

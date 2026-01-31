@@ -5,13 +5,40 @@ public class ClickCollection : MonoBehaviour,IPointerClickHandler
 {
     public PartDefinition part;
     public bool disableOnCollect = true;
+    PickupAnim anim;
+    bool _inventoryOpen;
+    void Awake()
+    {
+        anim = GetComponent<PickupAnim>();
+    }
+    void OnEnable()
+    {
+        InventoryUI.OnInventoryOpenChanged += HandleInv;
+    }
+
+    void OnDisable()
+    {
+        InventoryUI.OnInventoryOpenChanged -= HandleInv;
+    }
+
+    void HandleInv(bool open)
+    {
+        _inventoryOpen = open;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (_inventoryOpen) return;
         if (eventData.button != PointerEventData.InputButton.Left) return;
         if (part == null) return;
         bool ok = InventoryManager.I.Add(part);
         if(ok)
         {
+            if(anim!=null)
+            {
+                anim.PlayAndDisable();
+            }
+            else
             if (disableOnCollect) gameObject.SetActive(false);
         }
 

@@ -11,6 +11,7 @@ public class InventoryUI : MonoBehaviour
     public KeyCode toggleKey = KeyCode.I;
 
     public bool IsOpen { get; private set; }
+    public static event System.Action<bool> OnInventoryOpenChanged;
 
     void Awake()
     {
@@ -47,6 +48,7 @@ public class InventoryUI : MonoBehaviour
         root.blocksRaycasts = true;   
         root.interactable = true;
         Refresh();
+        OnInventoryOpenChanged?.Invoke(true);
     }
 
     public void Close()
@@ -56,6 +58,7 @@ public class InventoryUI : MonoBehaviour
         root.blocksRaycasts = false;  
         root.interactable = false;
         tooltip?.Hide();
+        OnInventoryOpenChanged?.Invoke(false);
     }
 
     public void Refresh()
