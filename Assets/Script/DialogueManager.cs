@@ -15,6 +15,11 @@ public class DialogueManager : MonoBehaviour
     // =========================
     [Header("UI")]
     public TextMeshProUGUI dialogueText;
+    [Header("UI - Root")]
+    public GameObject dialogueUIRoot; // 整个对话UI的父物体（建议就是 Canvas 或 DialogueUI）
+
+    // Selection UI
+    [Header("SelectionUI")]
     public Transform selectionRoot;           // 选项按钮父物体
     public Button selectionButtonPrefab;      // 选项按钮预制体（里面带 TMP 文本）
 
@@ -96,6 +101,14 @@ public class DialogueManager : MonoBehaviour
         CurrentNode != null && CurrentNode.isLocked;
 
     // =========================
+    // Events
+    // =========================
+    public System.Action OnDialogueOpened;
+    public System.Action OnDialogueClosed;
+
+    public bool IsOpen => dialogueUIRoot != null && dialogueUIRoot.activeSelf;
+
+    // =========================
     // Unity
     // =========================
     void Start()
@@ -110,6 +123,10 @@ public class DialogueManager : MonoBehaviour
 
             if (selectionRoot != null)
                 selectionRoot.gameObject.SetActive(false);
+
+                // ✅ 开局隐藏整套UI
+            if (dialogueUIRoot != null)
+                dialogueUIRoot.SetActive(false);
 
             autoPlay = false;
             _isActive = false;   // ✅ 安全停机：不工作，但也不报错/不崩
@@ -275,7 +292,7 @@ public class DialogueManager : MonoBehaviour
         if (next == -1)
         {
             _currentIndex = -1;
-            dialogueText.text = "(Dialogue End)";
+            HideDialogue();
             return;
         }
 
@@ -592,6 +609,29 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
+    public void HideDialogue()
+    {
+        // 停止输入与协程
+        _isActive = false;
+
+        if (_typingCoroutine != null)
+        {
+            StopCoroutine(_typingCoroutine);
+            _typingCoroutine = null;
+        }
+
+        // 关子面板
+        ClearSelections();
+        SetAllPresentationOff();
+
+        // 关总面板
+        if (dialogueUIRoot != null)
+            dialogueUIRoot.SetActive(false);
+        
+        OnDialogueClosed?.Invoke();
+    }
+
+
     // =========================
     // Switch Group at Runtime
     // =========================
@@ -614,13 +654,19 @@ public class DialogueManager : MonoBehaviour
             _isLineFinished = false;
 
             if (selectionRoot != null) selectionRoot.gameObject.SetActive(false);
-
+            HideDialogue(); // ✅ 没有内容就直接隐藏
             _isActive = false; // 继续安全停机
             return;
         }
 
         // 只要点击按钮播放组，就必须恢复系统运行
         _isActive = true;
+
+        // ✅ 打开整套对话UI（开局是隐藏的）
+        if (dialogueUIRoot != null)
+            dialogueUIRoot.SetActive(true);
+
+        OnDialogueOpened?.Invoke();
 
         currentGroup = group;
 
