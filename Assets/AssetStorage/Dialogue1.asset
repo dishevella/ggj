@@ -23,34 +23,29 @@ MonoBehaviour:
     channel: 1
     speakerIndex: -1
     portraitOverride: {fileID: 0}
-    nameOverride: 
+    nameOverride: {fileID: 0}
   - content: '#1 HelloWorld'
     isLocked: 0
     nextIndex: 2
     tokens: []
     selection: []
-    channel: 0
-    speakerIndex: -1
+    channel: 1
+    speakerIndex: 0
     portraitOverride: {fileID: 0}
-    nameOverride: 
+    nameOverride: {fileID: 0}
   - content: '#2 HelloWorld'
     isLocked: 0
     nextIndex: -1
-    tokens:
-    - id: 
-      required: 0
-      clicked: 0
-      getObject: {fileID: 0}
-      getClue: 
+    tokens: []
     selection: []
-    channel: 0
-    speakerIndex: -1
+    channel: 1
+    speakerIndex: 1
     portraitOverride: {fileID: 0}
-    nameOverride: 
+    nameOverride: {fileID: 0}
   speakers:
+  - id: 0
+    displayName: {fileID: -1932790258518610280, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
+    defaultPortrait: {fileID: -4502668526669219185, guid: e55ee86333740194cab71e4bb3844b3d, type: 3}
   - id: 1
-    displayName: You
-    defaultPortrait: {fileID: 0}
-  - id: 2
-    displayName: Police
-    defaultPortrait: {fileID: 0}
+    displayName: {fileID: 7519076115162389682, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
+    defaultPortrait: {fileID: -4509999187885996813, guid: 6e92a80013db7024c841ef6f76055d1e, type: 3}
