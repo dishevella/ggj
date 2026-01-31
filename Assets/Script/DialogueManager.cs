@@ -31,7 +31,7 @@ public class DialogueManager : MonoBehaviour
     [Header("UI - Left Speaker")]
     public GameObject leftRoot;
     public Image leftPortrait;
-    public TextMeshProUGUI leftNameText;
+    public Image leftNameImage;
     public TextMeshProUGUI leftContentText;
 
     // =========================
@@ -40,7 +40,7 @@ public class DialogueManager : MonoBehaviour
     [Header("UI - Right Speaker")]
     public GameObject rightRoot;
     public Image rightPortrait;
-    public TextMeshProUGUI rightNameText;
+    public Image rightNameImage;
     public TextMeshProUGUI rightContentText;
 
     // 当前用于显示“内容”的 TMP（打字机/探索/跳过都写它）
@@ -525,7 +525,7 @@ public class DialogueManager : MonoBehaviour
         if (rightRoot != null) rightRoot.SetActive(false);
     }
 
-    private void ApplySpeakerUI(Image portrait, TextMeshProUGUI nameText, Sprite portraitSprite, string name)
+    private void ApplySpeakerUI(Image portrait, Image nameImage, Sprite nameSprite, Sprite portraitSprite)
     {
         if (portrait != null)
         {
@@ -534,19 +534,18 @@ public class DialogueManager : MonoBehaviour
             if (has) portrait.sprite = portraitSprite;
         }
 
-        if (nameText != null)
+        if (nameImage != null)
         {
-            bool show = !string.IsNullOrEmpty(name);
-            nameText.gameObject.SetActive(show);
-            nameText.text = name;
+            bool show = nameSprite != null;
+            nameImage.gameObject.SetActive(show);
+            if (show) nameImage.sprite = nameSprite;
         }
     }
-
     private void ApplyPresentation(DialogueGroupSO.DialogueNode node)
     {
         SetAllPresentationOff();
 
-        // 默认 fallback（防止没配UI时 NRE）
+        // 如果你还在用文字内容，就保留；如果你之后要全图片对话，这里会改成 _activeContentImage
         _activeContentText = narrationContentText != null ? narrationContentText : dialogueText;
 
         if (node == null)
@@ -557,7 +556,6 @@ public class DialogueManager : MonoBehaviour
 
         var speaker = GetSpeaker(node);
 
-        // speaker 无效 或 channel=旁白 => 旁白
         bool isNarration =
             node.channel == DialogueGroupSO.DialogueChannel.Narration || speaker == null;
 
@@ -568,8 +566,8 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        // Node override 优先
-        string finalName = !string.IsNullOrEmpty(node.nameOverride)
+        // ✅ Node override 优先（Sprite）
+        Sprite finalNameSprite = node.nameOverride != null
             ? node.nameOverride
             : speaker.displayName;
 
@@ -581,13 +579,16 @@ public class DialogueManager : MonoBehaviour
         {
             if (leftRoot != null) leftRoot.SetActive(true);
             _activeContentText = leftContentText != null ? leftContentText : dialogueText;
-            ApplySpeakerUI(leftPortrait, leftNameText, finalPortrait, finalName);
+
+            // 这里要求你把 leftNameText 改成 Image：leftNameImage
+            ApplySpeakerUI(leftPortrait, leftNameImage, finalNameSprite, finalPortrait);
         }
         else // Right
         {
             if (rightRoot != null) rightRoot.SetActive(true);
             _activeContentText = rightContentText != null ? rightContentText : dialogueText;
-            ApplySpeakerUI(rightPortrait, rightNameText, finalPortrait, finalName);
+
+            ApplySpeakerUI(rightPortrait, rightNameImage, finalNameSprite, finalPortrait);
         }
     }
 

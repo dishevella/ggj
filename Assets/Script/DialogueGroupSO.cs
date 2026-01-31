@@ -45,7 +45,7 @@ public class DialogueGroupSO : ScriptableObject
         public Sprite portraitOverride;
 
         [Tooltip("可空：覆盖 speaker 的名字")]
-        public string nameOverride;
+        public Sprite nameOverride;
     }
 
     [Serializable]
@@ -77,7 +77,7 @@ public class DialogueGroupSO : ScriptableObject
     public class Speaker
     {
         public string id;                  // 内部引用用（可选）
-        public string displayName;          // 显示名（可空 = 不显示）
+        public Sprite displayName;          // 显示名（可空 = 不显示）
         public Sprite defaultPortrait;      // 默认头像（可空）
     }
 
