@@ -10,6 +10,7 @@ public class PartDefinition : ScriptableObject
     public Sprite originalSprite;
     public Sprite hintSprite;
     public Sprite equipSprite;
+    public EmotionVector effect;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
