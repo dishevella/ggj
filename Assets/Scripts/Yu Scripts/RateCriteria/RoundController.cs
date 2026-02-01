@@ -4,6 +4,7 @@ using TMPro;
 
 public class RoundController : MonoBehaviour
 {
+    public StateManager SM;
     [Header("Data")]
     public BossProfile boss;
     public PlayerExpressionState player;
@@ -13,8 +14,8 @@ public class RoundController : MonoBehaviour
     public float roundSeconds = 30f;
 
     [Header("Damage Rule")]
-    public int freeDev = 5;         // ÔÊĞíµÄÃâ·ÑÆ«²î
-    public int damagePerDev = 2;    // Ã¿³¬1Æ«²î¿Û¶àÉÙÑª
+    public int freeDev = 5;         // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½
+    public int damagePerDev = 2;    // Ã¿ï¿½ï¿½1Æ«ï¿½ï¿½Û¶ï¿½ï¿½ï¿½Ñª
 
     [Header("UI")]
     public GameObject memoPanel;
@@ -30,11 +31,21 @@ public class RoundController : MonoBehaviour
     [Header("UI Rules")]
     public bool showSubmitOnlyWhenInventoryOpen = true;
     [Header("After Result")]
-    public float resultShowSeconds = 2f;     // ½á¹ûÏÔÊ¾¶à¾ÃºóÏûÊ§
-    public bool hideTimerAfterResult = true; // ÊÇ·ñÒş²Øµ¹¼ÆÊ±ÎÄ×Ö
-    public bool autoNextRoundOnFail = false; // Ê§°Üµ«Ã»ËÀ£ºÊÇ·ñ×Ô¶¯ÏÂÒ»ÂÖ
-    public float nextRoundDelay = 1.0f;      // ÏÂÒ»ÂÖÑÓ³Ù
+    public float resultShowSeconds = 2f;     // ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ãºï¿½ï¿½ï¿½Ê§
+    public bool hideTimerAfterResult = true; // ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
+    public bool autoNextRoundOnFail = false; // Ê§ï¿½Üµï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+    public float nextRoundDelay = 1.0f;      // ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ó³ï¿½
     Coroutine _resultCR;
+
+    [Header("After Battle Dialogue")]
+    public DialogueGroupSO winDialogue;
+    public DialogueGroupSO failDialogue;      // FAIL ä½†æ²¡æ­»ï¼ˆè¿˜èƒ½ç»§ç»­ï¼‰
+    public DialogueGroupSO deadDialogue;      // FAIL ä¸”æ­»äº†ï¼ˆGameOverï¼‰
+
+    [Tooltip("ç»“ç®—åå»¶è¿Ÿå¤šä¹…å†å¼¹å‡ºå¯¹è¯ï¼ˆç»™ UI æ˜¾ç¤º PASS/FAIL çš„æ—¶é—´ï¼‰")]
+    public float dialogueDelayAfterResult = 0.1f;
+
+    private bool _battleFinishedFired = false; // é˜²æ­¢é‡å¤è§¦å‘
 
 
     void Awake()
@@ -44,7 +55,7 @@ public class RoundController : MonoBehaviour
         ShowMemo(true);
         LockBackground(true);
         SetResult(false, "");
-        // ¿ª¾Ö²»ÏÔÊ¾¼ÆÊ±Æ÷
+        // ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ê±ï¿½ï¿½
         SetTimerVisible(false);
         var inv = FindFirstObjectByType<InventoryUI>();
         OnInventoryOpenChanged(inv != null && inv.IsOpen);
@@ -56,6 +67,7 @@ public class RoundController : MonoBehaviour
     }
     public void StartRound()
     {
+        SM.EnterTask();
         //FindFirstObjectByType<InventoryUI>()?.SetInputLocked(false);
         SetTimerVisible(true);
         _timeLeft = roundSeconds;
@@ -93,10 +105,10 @@ public class RoundController : MonoBehaviour
 
         if (submitButton)
         {
-            // ±³°ü¿ª -> ÏÔÊ¾£»±³°ü¹Ø -> Òş²Ø
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½ï¿½ï¿½ï¿½
             submitButton.gameObject.SetActive(open);
 
-            // ¿ÉÑ¡£ºÈç¹ûÄãÏ£Íû¡°±³°ü¿ªµ«µ±Ç°²»ÔÚ»ØºÏÖĞ¡±Ò²²»ÄÜµã
+            // ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ú»Øºï¿½ï¿½Ğ¡ï¿½Ò²ï¿½ï¿½ï¿½Üµï¿½
             submitButton.interactable = open && _running;
         }
     }
@@ -113,10 +125,10 @@ public class RoundController : MonoBehaviour
     {
         //FindFirstObjectByType<InventoryUI>()?.SetInputLocked(true);
         if (submitButton) submitButton.interactable = false;
-        // 1) ¼ÆËãÍæ¼Òµ±Ç°×ÜÎåÎ¬
+        // 1) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½Ç°ï¿½ï¿½ï¿½ï¿½Î¬
         EmotionVector playerVec = player.GetTotal();
 
-        // 2) ËãÆ«²î£¨¾ø¶ÔÖµÖ®ºÍ£©
+        // 2) ï¿½ï¿½Æ«ï¿½î£¨ï¿½ï¿½ï¿½ï¿½ÖµÖ®ï¿½Í£ï¿½
         int d1 = Mathf.Abs(playerVec.hostility - boss.target.hostility);
         int d2 = Mathf.Abs(playerVec.anger - boss.target.anger);
         int d3 = Mathf.Abs(playerVec.sadness - boss.target.sadness);
@@ -124,10 +136,10 @@ public class RoundController : MonoBehaviour
         int d5 = Mathf.Abs(playerVec.honesty - boss.target.honesty);
         int totalDev = d1 + d2 + d3 + d4 + d5;
 
-        // 3) ÅĞ¶¨±¾ÂÖÊÇ·ñ³É¹¦£¨ÄãÒ²¿ÉÒÔÖ±½ÓÓÃ totalDev <= ãĞÖµ£©
+        // 3) ï¿½Ğ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ totalDev <= ï¿½ï¿½Öµï¿½ï¿½
         bool pass = totalDev <= boss.passTotalDeviation;
 
-        // 4) Èç¹ûÊ§°Ü£º¸ù¾İÆ«²î¿ÛÑª
+        // 4) ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½ï¿½Ñª
         int dmg = 0;
         if (!pass)
         {
@@ -136,13 +148,13 @@ public class RoundController : MonoBehaviour
             if (vital) vital.Damage(dmg);
         }
 
-        // 5) ½á¹ûÕ¹Ê¾
+        // 5) ï¿½ï¿½ï¿½Õ¹Ê¾
         LockBackground(true);
         bool dead = false;
         if (pass)
         {
             SetResult(true, $"PASS\nDeviation={totalDev}");
-            // TODO: ²¥·Å½áÊø¶¯»­ / ½øÈëÏÂÒ»¹Ø
+            // TODO: ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
         }
         else
         {
@@ -150,13 +162,12 @@ public class RoundController : MonoBehaviour
             if (dead)
             {
                 SetResult(true, $"FAIL (GAME OVER)\n Deviation ={totalDev}\nDeduction={dmg}");
-                // TODO: ÓÎÏ·Ê§°Ü/±»ÇıÖğ/»ØÖ÷²Ëµ¥
             }
             else
             {
                 SetResult(true, $"FAIL\n Deviation={totalDev}\nDeduction={dmg}\nHP={vital.hp}/{vital.maxHP}");
-                // TODO: ÔÊĞí¼ÌĞøÏÂÒ»ÂÖ£ºÏÔÊ¾MEMO -> ÖØ¿ª
-                // Àı£º2Ãëºó×Ô¶¯¿ªÊ¼ÏÂÒ»ÂÖ
+                // TODO: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ö£ï¿½ï¿½ï¿½Ê¾MEMO -> ï¿½Ø¿ï¿½
+                // ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½Ò»ï¿½ï¿½
                 //Invoke(nameof(StartRoundWithMemo), 1.0f);
             }
         }
@@ -165,6 +176,15 @@ public class RoundController : MonoBehaviour
 
         Debug.Log($"[Round] auto={auto} pass={pass} totalDev={totalDev} dmg={dmg} " +
                   $"player={playerVec} target={boss.target}");
+
+        // âœ… é˜²æ­¢é‡å¤è§¦å‘ï¼ˆæ¯”å¦‚ Submit ä¸ time out åŒæ—¶è§¦å‘ï¼‰
+        if (_battleFinishedFired) return;
+        _battleFinishedFired = true;
+
+        // âœ… åœ¨åç¨‹é‡Œå¤„ç†ï¼šéšè—ç»“æœã€é€€å‡º Taskã€å¼¹å¯¹è¯
+        if (_resultCR != null) StopCoroutine(_resultCR);
+        _resultCR = StartCoroutine(Co_AfterResult(pass, dead));
+
     }
     void SetTimerVisible(bool show)
 {
@@ -180,32 +200,34 @@ void HideResultAndTimer()
 
 System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
 {
-    // µÈÒ»»áÈÃÍæ¼Ò¿´µ½½á¹û
+    // å…ˆè®© PASS/FAIL é¢æ¿æ˜¾ç¤ºä¸€ä¼šå„¿
     yield return new WaitForSeconds(resultShowSeconds);
 
-    // Òş²Ø½á¹û & µ¹¼ÆÊ±
     HideResultAndTimer();
 
-    // ÕâÀï¾ö¶¨ÏÂÒ»²½×öÊ²Ã´£¨°´ÄãÏëÒªµÄÁ÷³Ì£©
-    if (dead)
-    {
-        // Game Over£ºÄã¿ÉÒÔÔÚÕâÀï»ØÖ÷²Ëµ¥/ÖØ¿ªµÈ
-        yield break;
-    }
+    // âœ… é€‰æ‹©è¦æ’­æ”¾çš„å¯¹è¯
+    DialogueGroupSO next = null;
+    if (pass) next = winDialogue;
+    else if (dead) next = deadDialogue;
+    else next = failDialogue;
 
-    if (!pass && autoNextRoundOnFail)
-    {
-        // Ê§°Üµ«Ã»ËÀ£º×Ô¶¯ÏÂÒ»ÂÖ
-        yield return new WaitForSeconds(nextRoundDelay);
-        StartRoundWithMemo(); // »ò StartRound()
-    }
-    // pass µÄ»°£ºÄã¿ÉÒÔÔÚÕâÀï½øÈëÏÂÒ»¹Ø / ²¥¶¯»­
+    // âœ… é€€å‡º Taskï¼ˆæ— è®ºèƒœè´Ÿ/æ­»äº¡éƒ½é€€ï¼‰ï¼Œå†å¼€å¯¹è¯
+    // ç»™ä¸€å¸§/ä¸€ç‚¹ç‚¹å»¶è¿Ÿï¼Œé¿å… UI çŠ¶æ€åŒå¸§å†²çª
+    yield return new WaitForSeconds(dialogueDelayAfterResult);
+
+    // å¦‚æœä½ æƒ³ï¼šæ­»äº¡æ—¶ä¸å¼¹å¯¹è¯ï¼Œè€Œæ˜¯ç›´æ¥ GameOver UIï¼Œå°±åœ¨è¿™é‡Œ return
+    // if (dead) yield break;
+
+    PlayAfterDialogue(next);
+
+    // âœ… å¦‚æœå¤±è´¥ä¸”æ²¡æ­»ï¼Œå¹¶ä¸”ä½ æƒ³è‡ªåŠ¨ä¸‹ä¸€è½®ï¼Œé‚£ä¹ˆåº”è¯¥ç­‰å¯¹è¯ç»“æŸå†å¼€å§‹
+    // è¿™ä¸ªæœ€å¥½äº¤ç»™å¯¹è¯çš„ EndAction æˆ–è€… StateManager çš„å›è°ƒåš
 }
 
     void StartRoundWithMemo()
     {
         ShowMemo(true);
-        // ÄãÒ²¿ÉÒÔÒªÇóÍæ¼Òµã¡°¼ÌĞø¡±°´Å¥ÔÙ¿ªÊ¼
+        // ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Òµã¡°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¥ï¿½Ù¿ï¿½Ê¼
         Invoke(nameof(StartRound), 1.0f);
     }
 
@@ -238,7 +260,7 @@ System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
 
     public void TriggerBossBattle(BossProfile bossProfile, float? seconds = null)
     {
-        if (_bossActive) return; // ÒÑ¾­ÔÚBossÕ½£¬²»ÖØ¸´´¥·¢
+        if (_bossActive) return; // ï¿½Ñ¾ï¿½ï¿½ï¿½BossÕ½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½
 
         _bossActive = true;
 
@@ -249,4 +271,20 @@ System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
         StartRound();
     }
 
+
+    void PlayAfterDialogue(DialogueGroupSO group)
+    {
+        if (group == null) return;
+        if (StateManager.I == null)
+        {
+            Debug.LogError("[RoundController] StateManager.I is null.");
+            return;
+        }
+
+        // âœ… ç¡®ä¿é€€å‡º Task åå†å¼€å¯¹è¯ï¼ˆé¿å… Click/Task è¾“å…¥å†²çªï¼‰
+        StateManager.I.ExitTask();
+
+        // âœ… ç›´æ¥è®© StateManager æ‰“å¼€å¯¹è¯ï¼ˆå®ƒä¼šåˆ‡åˆ° Dialogue çŠ¶æ€å¹¶é”ç©å®¶ç§»åŠ¨ï¼‰
+        StateManager.I.TryStartDialogue(group);
+    }
 }

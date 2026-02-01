@@ -203,7 +203,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a51f4aaa0b58fb43b9112f521364af3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickNPC
-  group: {fileID: 11400000, guid: d4bc98e5c4f045a4fb8a006a7f7faccf, type: 2}
+  rules: []
+  score: 0
+  clickAddScore: 0
+  blockWhenDialogueOpen: 1
   dialogueManager: {fileID: 599342799}
   hintUI: {fileID: 0}
   hideHintWhenNoGroup: 1
@@ -459,7 +462,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a51f4aaa0b58fb43b9112f521364af3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickNPC
-  group: {fileID: 11400000, guid: d4bc98e5c4f045a4fb8a006a7f7faccf, type: 2}
+  rules:
+  - selectScore: 0
+    group: {fileID: 11400000, guid: b1bd87e2c8e31ed488a7721b0eea2aac, type: 2}
+    endAddScore: 1
+  - selectScore: 1
+    group: {fileID: 11400000, guid: f18d6035cd73c3346954ea90ae3711d9, type: 2}
+    endAddScore: 0
+  score: 0
+  clickAddScore: 0
+  blockWhenDialogueOpen: 1
   dialogueManager: {fileID: 599342799}
   hintUI: {fileID: 0}
   hideHintWhenNoGroup: 1
@@ -669,6 +681,52 @@ RectTransform:
   m_AnchoredPosition: {x: 167, y: 141}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &235538314
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 235538315}
+  - component: {fileID: 235538316}
+  m_Layer: 0
+  m_Name: TriggerBoss
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &235538315
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235538314}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 843472397}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &235538316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235538314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bd7b59b5852bab4e82deedcdae5cc2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TriggerBoss
+  RC: {fileID: 1042567809}
+  BP: {fileID: 11400000, guid: 5824f3f14b88d0f4b8f32edbc91c8869, type: 2}
 --- !u!1 &256669428
 GameObject:
   m_ObjectHideFlags: 0
@@ -3187,7 +3245,7 @@ Transform:
   m_GameObject: {fileID: 725112947}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.1310459, y: -0.26961124, z: 0}
+  m_LocalPosition: {x: -3.393, y: -0.565, z: 0}
   m_LocalScale: {x: 0.20984158, y: 0.13933398, z: 0.6666667}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -3612,7 +3670,7 @@ MonoBehaviour:
     - {fileID: 1505542832}
   - sceneId: 1
     objects:
-    - {fileID: 1154823595}
+    - {fileID: 843472396}
   sceneManager: {fileID: 888761484}
 --- !u!4 &835633714
 Transform:
@@ -3644,7 +3702,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &843472397
 Transform:
   m_ObjectHideFlags: 0
@@ -3662,6 +3720,7 @@ Transform:
   - {fileID: 1946321820}
   - {fileID: 2046142784}
   - {fileID: 118152572}
+  - {fileID: 235538315}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &888761483
@@ -4451,6 +4510,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7b268f94be438345aefd10e8f6f346d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoundController
+  SM: {fileID: 2055914134}
   boss: {fileID: 11400000, guid: 292aa8ececc9f3d468a04434c62c4b70, type: 2}
   player: {fileID: 1684351692}
   vital: {fileID: 1684351693}
@@ -4468,6 +4528,10 @@ MonoBehaviour:
   hideTimerAfterResult: 1
   autoNextRoundOnFail: 0
   nextRoundDelay: 1
+  winDialogue: {fileID: 0}
+  failDialogue: {fileID: 0}
+  deadDialogue: {fileID: 0}
+  dialogueDelayAfterResult: 0.1
 --- !u!1 &1053928896
 GameObject:
   m_ObjectHideFlags: 0
@@ -4695,7 +4759,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 83, y: -268}
+  m_AnchoredPosition: {x: 251, y: -147}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1081567313
@@ -5076,11 +5140,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventorySlotUI
   icon: {fileID: 1160751103}
   canvas: {fileID: 409865981}
---- !u!1 &1154823595 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5865520498977267609, guid: 87857b69fa609f14cb032914c289a932, type: 3}
-  m_PrefabInstance: {fileID: 1692539275}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1160751101
 GameObject:
   m_ObjectHideFlags: 0
@@ -7837,6 +7896,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1961620378012108200, guid: 87857b69fa609f14cb032914c289a932, type: 3}
+      propertyPath: DM
+      value: 
+      objectReference: {fileID: 599342799}
     - target: {fileID: 5865520498977267609, guid: 87857b69fa609f14cb032914c289a932, type: 3}
       propertyPath: m_Name
       value: eyes2 2
@@ -9069,7 +9132,7 @@ Transform:
   m_GameObject: {fileID: 1946321818}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.1310459, y: -0.26961124, z: 0}
+  m_LocalPosition: {x: -3.3, y: -0.26961124, z: 0}
   m_LocalScale: {x: 3.0179415, y: 2.0039015, z: 9.588001}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9549,7 +9612,7 @@ Transform:
   m_GameObject: {fileID: 2046142782}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.1310459, y: -0.26961124, z: 0}
+  m_LocalPosition: {x: -3.39, y: -0.56, z: 0}
   m_LocalScale: {x: 0.8605682, y: 1.2040406, z: 0.6666667}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9585,7 +9648,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StateManager
   state: 0
-  taskPhase: 0
   dialogueManager: {fileID: 599342799}
   player: {fileID: 1654680613}
 --- !u!4 &2055914135

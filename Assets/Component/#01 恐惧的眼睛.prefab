@@ -196,5 +196,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ClickCollection
   part: {fileID: 11400000, guid: 0f88a158eb3a38d44a5366a88609a30d, type: 2}
   disableOnCollect: 1
-  group: {fileID: 0}
+  group: {fileID: 11400000, guid: c068327579d19834cbbb86b360a43896, type: 2}
   DM: {fileID: 0}

@@ -109,12 +109,20 @@ public class ClickNPC : MonoBehaviour
             return;
         }
 
-        // 准备：对话结束后加 endAddScore
+        // ✅ 先请求 StateManager 试图启动对话
+        bool started = StateManager.I.TryStartDialogue(rule.group);
+        if (!started)
+        {
+            // ❗被禁止/失败：不计数、不挂 pending（最稳）
+            return;
+        }
+
+        // ✅ 到这里说明：对话真的开始了，才允许计数/挂账
+        if (clickAddScore != 0)
+            score += clickAddScore;
+
         _pendingEndAdd = true;
         _pendingAddValue = rule.endAddScore;
-
-        // 启动对话
-        StateManager.I.TryStartDialogue(rule.group);
     }
 
     // =========================
