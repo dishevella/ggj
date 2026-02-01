@@ -47,6 +47,7 @@ public class RoundController : MonoBehaviour
 
     private bool _battleFinishedFired = false; // 防止重复触发
 
+    public bool _bossActive;
 
     void Awake()
     {
@@ -229,6 +230,7 @@ System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
 
     // ✅ 如果失败且没死，并且你想自动下一轮，那么应该等对话结束再开始
     // 这个最好交给对话的 EndAction 或者 StateManager 的回调做
+    _bossActive = false;
 }
 
     void StartRoundWithMemo()
@@ -263,7 +265,7 @@ System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
         if (resultText) resultText.text = text;
 
     }
-    bool _bossActive;
+
 
     public void TriggerBossBattle(BossProfile bossProfile, float? seconds = null)
     {

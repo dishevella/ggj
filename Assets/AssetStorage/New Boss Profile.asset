@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BossProfile
   bossName: Jailor
   target:
-    hostility: 8
+    hostility: 0
     anger: 0
     sadness: 0
     dominance: 0
-    honesty: 8
-  passTotalDeviation: 17
-  passPerAxisDeviation: 3
+    honesty: 10
+  passTotalDeviation: 1
+  passPerAxisDeviation: 100

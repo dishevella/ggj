@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3d0044719da704dbf639f58e56d7a7, type: 3}
+  m_Name: "#02 \u771F\u8BDA\u7684\u773C\u775B"
+  m_EditorClassIdentifier: Assembly-CSharp::PartDefinition
+  id: "#02 \u771F\u8BDA\u7684\u773C\u775B"
+  type: 0
+  originalSprite: {fileID: 7197568307356981599, guid: 8ed04418f3959ed48b1c2508155e70b1, type: 3}
+  hintSprite: {fileID: 21300000, guid: dd4daa178ccb7db4a9d68649b48936c6, type: 2}
+  equipSprite: {fileID: 7197568307356981599, guid: 8ed04418f3959ed48b1c2508155e70b1, type: 3}
+  effect:
+    hostility: 0
+    anger: 0
+    sadness: 0
+    dominance: 0
+    honesty: 10
+  placement:
+    overridePlacement: 1
+    anchoredPos: {x: 0.6000004, y: -5.199997}
+    rotationZ: -6.1400146
+    scale: {x: 0.6009904, y: 0.36290792}
