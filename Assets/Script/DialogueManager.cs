@@ -138,8 +138,10 @@ public class DialogueManager : MonoBehaviour
     // =========================
     void Start()
     {
+        
         if (!HasGroupAndNodes)
         {
+            Debug.Log("Enter this Branch");
             if (dialogueText != null)
             {
                 dialogueText.text = "(No Dialogue Group)";
@@ -158,6 +160,7 @@ public class DialogueManager : MonoBehaviour
         _currentIndex = Mathf.Clamp(start, 0, currentGroup.nodes.Count - 1);
 
         ClearSelections();
+        SetAllPresentationOffImmediate();
         PlayCurrentNode();
         RefreshSpecial();
     }

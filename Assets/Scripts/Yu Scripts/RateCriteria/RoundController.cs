@@ -44,13 +44,15 @@ public class RoundController : MonoBehaviour
         ShowMemo(true);
         LockBackground(true);
         SetResult(false, "");
-        UpdateTimerUI(roundSeconds);
+        // 开局不显示计时器
+        SetTimerVisible(false);
         var inv = FindFirstObjectByType<InventoryUI>();
         OnInventoryOpenChanged(inv != null && inv.IsOpen);
+
     }
     void Start()
     {
-        StartRound();
+        
     }
     public void StartRound()
     {
@@ -232,4 +234,19 @@ System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
         if (resultText) resultText.text = text;
 
     }
+    bool _bossActive;
+
+    public void TriggerBossBattle(BossProfile bossProfile, float? seconds = null)
+    {
+        if (_bossActive) return; // 已经在Boss战，不重复触发
+
+        _bossActive = true;
+
+        if (bossProfile != null) boss = bossProfile;
+        if (seconds.HasValue) roundSeconds = seconds.Value;
+
+        Debug.Log($"[BossBattle] START boss={(boss ? boss.name : "NULL")}");
+        StartRound();
+    }
+
 }

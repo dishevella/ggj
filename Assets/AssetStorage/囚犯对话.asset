@@ -14,13 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
   groupId: "\u56DA\u72AF\u5BF9\u8BDD"
   startIndex: 1
+  itemObjectName: 
+  functionName: 
+  endClues:
+  - "\u6309 i \u5F00\u5173\u80CC\u5305"
+  - "\u62D6\u62FD\u81F3\u5DE6\u4E0B\u89D2\u4EE5\u7EC4\u88C5"
+  deduplicateEndClues: 1
   nodes:
   - content: 
     isLocked: 0
     nextIndex: 0
     tokens: []
     selection: []
-    channel: 0
+    channel: 2
     speakerIndex: 0
     portraitOverride: {fileID: 0}
     nameOverride: {fileID: 0}
@@ -52,14 +58,15 @@ MonoBehaviour:
     portraitOverride: {fileID: 0}
     nameOverride: {fileID: 0}
   - content: "\u4F60\u7684<link=Eyes>\u773C\u775B</link>\u4E0D\u5BF9\u3002\u4F60\u7AD9\u5728\u90A3\u513F\u7684\u65F6\u5019\u2026\u2026\u7ED9\u4EBA\u7684\u611F\u89C9\u4E0D\u5BF9\u3002"
-    isLocked: 1
+    isLocked: 0
     nextIndex: 5
     tokens:
     - id: Eyes
       required: 1
-      clicked: 0
-      getObject: {fileID: 0}
+      clicked: 1
+      getPart: {fileID: 11400000, guid: 0f88a158eb3a38d44a5366a88609a30d, type: 2}
       getClue: 
+      pickupAnimPrefab: {fileID: 3053088715920542615, guid: 5337ab13b142eb848a8293c0902daef4, type: 3}
     selection: []
     channel: 2
     speakerIndex: 1
@@ -75,6 +82,15 @@ MonoBehaviour:
     portraitOverride: {fileID: 0}
     nameOverride: {fileID: 0}
   - content: "\u4F60\u4E0D\u50CF\u5176\u4ED6\u4EBA\uFF0C\u4F60\u7684\u8868\u60C5......\u4E0D\uFF0C\u4F60\u6839\u672C\u6CA1\u6709\u8868\u60C5\uFF01"
+    isLocked: 0
+    nextIndex: 7
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\uFF08\u4F60\u89C2\u5BDF\u5E76\u8BB0\u5F55\u4E86\u4ED6\u7684\u8868\u60C5\uFF09\n\u3010\u83B7\u5F97\u5668\u5B98\uFF1A\u6050\u60E7\u7684\u773C\u775B\uFF0C\u5C1D\u8BD5\u88C5\u5907\u4E00\u4E0B\u5427\u3011"
     isLocked: 0
     nextIndex: -1
     tokens: []

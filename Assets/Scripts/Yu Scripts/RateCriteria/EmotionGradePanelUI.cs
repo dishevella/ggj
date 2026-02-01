@@ -69,11 +69,11 @@ public class EmotionGradePanelUI : MonoBehaviour
 
         EmotionVector v = player.GetTotal();
 
-        if (hostilityText) hostilityText.text = $"Hostility{ToGrade(v.hostility)}";
-        if (angerText) angerText.text = $"Serenity{ToGrade(v.anger)}";
-        if (sadnessText) sadnessText.text = $"Sadness{ToGrade(v.sadness)}";
-        if (dominanceText) dominanceText.text = $"Docile{ToGrade(v.dominance)}";
-        if (honestyText) honestyText.text = $"Hypocrisy{ToGrade(v.honesty)}";
+        if (hostilityText) hostilityText.text = $"Hostility-{ToGrade(v.hostility)}";
+        if (angerText) angerText.text = $"Serenity-{ToGrade(v.anger)}";
+        if (sadnessText) sadnessText.text = $"Sadness-{ToGrade(v.sadness)}";
+        if (dominanceText) dominanceText.text = $"Docile-{ToGrade(v.dominance)}";
+        if (honestyText) honestyText.text = $"Hypocrisy-{ToGrade(v.honesty)}";
     }
 
     string ToGrade(int value)
