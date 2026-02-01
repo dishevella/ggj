@@ -71,19 +71,21 @@ public class StateManager : MonoBehaviour
 
     public bool TryStartDialogue(DialogueGroupSO group)
     {
-        Debug.Log("TryStartDialogue called");
+        Debug.Log($"[SM] TryStartDialogue called group={(group ? group.name : "NULL")} state={state} dm={(dialogueManager?dialogueManager.name:"NULL")} isOpen={(dialogueManager?dialogueManager.IsOpen:false)}");
 
-        if (group == null) return false;
-        if (dialogueManager == null) return false;
+        if (group == null) { Debug.LogWarning("[SM] blocked: group null"); return false; }
+        if (dialogueManager == null) { Debug.LogWarning("[SM] blocked: dialogueManager null"); return false; }
 
-        // 🚫 已在对话中
-        if (state == GameState.Dialogue) return false;
-        if (dialogueManager.IsOpen) return false;
+        // ✅ 对话中禁止再次触发
+        if (state == GameState.Dialogue) { Debug.LogWarning("[SM] blocked: state is Dialogue"); return false; }
+        if (dialogueManager.IsOpen) { Debug.LogWarning("[SM] blocked: dialogueManager.IsOpen == true"); return false; }
 
         ChangeState(GameState.Dialogue);
+        Debug.Log("[SM] approved -> calling PlayGroup()");
         dialogueManager.PlayGroup(group);
         return true;
     }
+
 
     // =========================
     // State Updates

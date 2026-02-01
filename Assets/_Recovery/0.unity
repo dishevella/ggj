@@ -4528,9 +4528,9 @@ MonoBehaviour:
   hideTimerAfterResult: 1
   autoNextRoundOnFail: 0
   nextRoundDelay: 1
-  winDialogue: {fileID: 0}
-  failDialogue: {fileID: 0}
-  deadDialogue: {fileID: 0}
+  winDialogue: {fileID: 11400000, guid: 646d051a53efaf44b9c16823031261da, type: 2}
+  failDialogue: {fileID: 11400000, guid: a12b2dd3d0a141f45bdeaa62ec06c85a, type: 2}
+  deadDialogue: {fileID: 11400000, guid: a12b2dd3d0a141f45bdeaa62ec06c85a, type: 2}
   dialogueDelayAfterResult: 0.1
 --- !u!1 &1053928896
 GameObject:

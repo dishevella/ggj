@@ -67,6 +67,7 @@ public class RoundController : MonoBehaviour
     }
     public void StartRound()
     {
+        _battleFinishedFired = false;   // ✅ 每轮开始重置
         SM.EnterTask();
         //FindFirstObjectByType<InventoryUI>()?.SetInputLocked(false);
         SetTimerVisible(true);
@@ -122,7 +123,11 @@ public class RoundController : MonoBehaviour
     }
 
     void EvaluateAndApply(bool auto)
-    {
+    {   
+        // ✅ 防重必须放最前面（Submit/Timeout 同帧触发时很关键）
+        if (_battleFinishedFired) return;
+        _battleFinishedFired = true;
+
         //FindFirstObjectByType<InventoryUI>()?.SetInputLocked(true);
         if (submitButton) submitButton.interactable = false;
         // 1) ������ҵ�ǰ����ά
@@ -177,10 +182,6 @@ public class RoundController : MonoBehaviour
         Debug.Log($"[Round] auto={auto} pass={pass} totalDev={totalDev} dmg={dmg} " +
                   $"player={playerVec} target={boss.target}");
 
-        // ✅ 防止重复触发（比如 Submit 与 time out 同时触发）
-        if (_battleFinishedFired) return;
-        _battleFinishedFired = true;
-
         // ✅ 在协程里处理：隐藏结果、退出 Task、弹对话
         if (_resultCR != null) StopCoroutine(_resultCR);
         _resultCR = StartCoroutine(Co_AfterResult(pass, dead));
@@ -211,13 +212,19 @@ System.Collections.IEnumerator Co_AfterResult(bool pass, bool dead)
     else if (dead) next = deadDialogue;
     else next = failDialogue;
 
+    Debug.Log($"[RC] Co_AfterResult ENTER pass={pass} dead={dead}", this);
+
+    yield return new WaitForSeconds(resultShowSeconds);
+
+    Debug.Log($"[RC] pick next = {(next ? next.name : "NULL")}", this);
+
     // ✅ 退出 Task（无论胜负/死亡都退），再开对话
     // 给一帧/一点点延迟，避免 UI 状态同帧冲突
     yield return new WaitForSeconds(dialogueDelayAfterResult);
 
     // 如果你想：死亡时不弹对话，而是直接 GameOver UI，就在这里 return
     // if (dead) yield break;
-
+    Debug.Log("[RC] about to PlayAfterDialogue()", this);
     PlayAfterDialogue(next);
 
     // ✅ 如果失败且没死，并且你想自动下一轮，那么应该等对话结束再开始
