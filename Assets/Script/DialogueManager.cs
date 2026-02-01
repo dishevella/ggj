@@ -843,6 +843,9 @@ public class DialogueManager : MonoBehaviour
         // ✅ 在真正关闭 UI 前，执行当前节点的结束动作
         TryInvokeEndAction(currentGroup);
 
+        // ✅ 对话结束：把 DialogueGroupSO 里配置的线索加进 ClueManager
+        AddEndCluesFromGroup(currentGroup);
+    
         HideDialogue();
     }
 
@@ -866,6 +869,40 @@ public class DialogueManager : MonoBehaviour
 
         // 如果你想调用带一个参数的函数，比如 public void AddItem(string id)
         // 可以把 SendMessage 改成 go.SendMessage(node.functionName, node.itemObjectName, DontRequireReceiver)
+    }
+
+    void AddEndCluesFromGroup(DialogueGroupSO group)
+    {
+        if (group == null || group.endClues == null || group.endClues.Count == 0) return;
+
+        if (ClueManager.I == null)
+        {
+            Debug.LogError("[DialogueManager] ClueManager.I is null. Cannot add end clues.");
+            return;
+        }
+
+        if (group.deduplicateEndClues)
+        {
+            // 去重提交（同一组里重复的 clue 只加一次）
+            var set = new System.Collections.Generic.HashSet<string>();
+            foreach (var clueId in group.endClues)
+            {
+                if (string.IsNullOrWhiteSpace(clueId)) continue;
+                if (!set.Add(clueId)) continue;
+
+                bool ok = ClueManager.I.AddClue(clueId);
+                Debug.Log($"[DialogueManager] EndClue '{clueId}' => {ok}");
+            }
+        }
+        else
+        {
+            foreach (var clueId in group.endClues)
+            {
+                if (string.IsNullOrWhiteSpace(clueId)) continue;
+                bool ok = ClueManager.I.AddClue(clueId);
+                Debug.Log($"[DialogueManager] EndClue '{clueId}' => {ok}");
+            }
+        }
     }
 
     void SpawnPickupVisual(DialogueGroupSO.SearchToken token)

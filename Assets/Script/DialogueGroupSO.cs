@@ -12,6 +12,10 @@ public class DialogueGroupSO : ScriptableObject
     [Header("End Action (optional)")]
     public string itemObjectName;   // 场景里物体名，例如 "Key" 或 "Inventory"
     public string functionName;     // 要调用的方法名，例如 "GrantKey"
+    [Header("End Clues (Add after dialogue end)")]
+    public List<string> endClues = new List<string>();
+    public bool deduplicateEndClues = true;
+
 
     [Header("Nodes")]
     public List<DialogueNode> nodes = new List<DialogueNode>();
