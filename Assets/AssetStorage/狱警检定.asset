@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e031341348e26e2428e23dde6da1c4ee, type: 3}
+  m_Name: "\u72F1\u8B66\u68C0\u5B9A"
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
+  groupId: "\u72F1\u8B66\u68C0\u5B9A"
+  startIndex: 1
+  itemObjectName: TriggerBoss
+  functionName: StartBossFight
+  endClues: []
+  deduplicateEndClues: 1
+  nodes:
+  - content: 
+    isLocked: 0
+    nextIndex: 0
+    tokens: []
+    selection: []
+    channel: 0
+    speakerIndex: 0
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u4F60\u4E3A\u4EC0\u4E48\u8981\u5728\u8857\u4E0A\u6E38\u8361\uFF1F\u4F60\u662F\u4E0D\u662F\u60F3\u5E72\u4EC0\u4E48\u574F\u4E8B\uFF1F"
+    isLocked: 0
+    nextIndex: 2
+    tokens: []
+    selection: []
+    channel: 2
+    speakerIndex: 2
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\uFF08\u72F1\u8B66\u51F6\u6076\u7684\u773C\u795E\u7D27\u7D27\u76EF\u7740\u4F60\uFF0C\u60F3\u8981\u4ECE\u4F60\u8138\u4E0A\u627E\u51FA\u7834\u7EFD\uFF09"
+    isLocked: 0
+    nextIndex: -1
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 0
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  speakers:
+  - id: 0
+    displayName: {fileID: 21300000, guid: 59fa9a20db65a4b42a1b78e8401b7178, type: 3}
+    defaultPortrait: {fileID: -4502668526669219185, guid: e55ee86333740194cab71e4bb3844b3d, type: 3}
+  - id: 1
+    displayName: {fileID: 7519076115162389682, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
+    defaultPortrait: {fileID: -4509999187885996813, guid: 6e92a80013db7024c841ef6f76055d1e, type: 3}
+  - id: 1
+    displayName: {fileID: 5597445131831140087, guid: 4a2fa4c85c34ffd478b6310f384861e5, type: 3}
+    defaultPortrait: {fileID: -4509999187885996813, guid: 6e92a80013db7024c841ef6f76055d1e, type: 3}
