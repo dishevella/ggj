@@ -6,57 +6,82 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;     // units/sec
     public bool canMove = true;
 
-    [Header("Runtime (ReadOnly)")]
-    public Vector3 velocity;         // 当前速度向量（世界空间）
-    public float speed;              // 速度标量（= |velocity|）
-
     [Header("Anim")]
     public Animator animator;
     public string walkingBoolName = "isWalking";
-    public string moveXParamName = "moveX";   // -1/0/1
-    //public string speedParamName = "speed";   // 可选
+    private bool _isWalking;
 
-    // 内部状态
-    private float _inputX;
-    private Vector3 _lastPos;
+    [Header("Facing")]
+    public Transform visual;          // 推荐拖 Visual 子物体；不拖则默认使用自己 transform
+    public bool isRight = true;       // 默认朝右
+    public float flipLerpSpeed = 18f; // 翻转平滑速度（10~25 常用）
+    public float faceDeadZone = 0.01f;// 输入死区，避免误触/摇杆抖动
+
+    // 内部：当前用于平滑的目标
+    private float _targetScaleX;
 
     void Awake()
     {
-        _lastPos = transform.position;
+        // 初始化目标 scaleX：按当前 visual 的 scale 作为基准
+        Transform t = (visual != null) ? visual : transform;
+        float absX = Mathf.Abs(t.localScale.x);
+        _targetScaleX = isRight ? absX : -absX;
     }
 
     void Update()
     {
-        // 1) 读取输入
-        _inputX = Input.GetAxisRaw("Horizontal"); // -1/0/1
+        float x = canMove ? Input.GetAxisRaw("Horizontal") : 0f;
 
-        // 2) 计算本帧移动（直接位移）
-        float moveDir = canMove ? _inputX : 0f;
-
+        // 1) 移动
         Vector3 pos = transform.position;
-        if (moveDir != 0f)
-            pos.x += moveDir * moveSpeed * Time.deltaTime;
-
+        if (x != 0f)
+            pos.x += x * moveSpeed * Time.deltaTime;
         transform.position = pos;
 
-        // 3) 计算“真实速度向量”（由位移反推）
-        velocity = (transform.position - _lastPos) / Mathf.Max(Time.deltaTime, 0.00001f);
-        speed = velocity.magnitude;
-        _lastPos = transform.position;
-
-        // 4) 动画参数
-        if (animator != null)
+        // 2) Animator：只用 isWalking（稳）
+        bool wantWalk = canMove && Mathf.Abs(x) > 0.01f;
+        if (_isWalking != wantWalk)
         {
-            bool isWalking = canMove && Mathf.Abs(_inputX) > 0.01f;
-            animator.SetBool(walkingBoolName, isWalking);
-
-            // moveX：只表达“朝向/左右/不动”，最适合给 Animator 做分支或 BlendTree
-            float moveX = isWalking ? Mathf.Sign(_inputX) : 0f;
-            animator.SetFloat(moveXParamName, moveX);
-
-            // 可选：speed 用于 BlendTree（比如 Idle/Walk/Run）
-            //animator.SetFloat(speedParamName, speed);
+            _isWalking = wantWalk;
+            if (animator != null)
+                animator.SetBool(walkingBoolName, _isWalking);
         }
+
+        // 3) 朝向：只有输入明确时才更新 isRight
+        UpdateFacing(x);
+
+        // 4) 平滑把 scale.x 推向目标
+        ApplyFlipSmoothing();
+    }
+
+    void UpdateFacing(float inputX)
+    {
+        if (!canMove) return;
+        if (Mathf.Abs(inputX) <= faceDeadZone) return;
+
+        bool wantRight = inputX > 0f;
+
+        // 方向相同 -> 不变；方向不同 -> 切换
+        if (wantRight == isRight) return;
+
+        isRight = wantRight;
+
+        // ⭐ 目标不是 ±1，而是“当前缩放幅度 × 方向符号”
+        Transform t = (visual != null) ? visual : transform;
+        float absX = Mathf.Abs(t.localScale.x);
+        _targetScaleX = isRight ? absX : -absX;
+    }
+
+    void ApplyFlipSmoothing()
+    {
+        Transform t = (visual != null) ? visual : transform;
+        Vector3 s = t.localScale;
+
+        // 用指数衰减形式的插值，帧率更稳定
+        float k = 1f - Mathf.Exp(-flipLerpSpeed * Time.deltaTime);
+
+        s.x = Mathf.Lerp(s.x, _targetScaleX, k);
+        t.localScale = s;
     }
 
     public void SetCanMove(bool value)
@@ -65,16 +90,12 @@ public class PlayerController : MonoBehaviour
 
         if (!canMove)
         {
-            // 立即停下：把 lastPos 对齐，避免 velocity 突然跳
-            _lastPos = transform.position;
-            velocity = Vector3.zero;
-            speed = 0f;
-
-            if (animator != null)
+            // 立刻把走路动画停掉（避免锁住时还在走）
+            if (_isWalking)
             {
-                animator.SetBool(walkingBoolName, false);
-                animator.SetFloat(moveXParamName, 0f);
-                //animator.SetFloat(speedParamName, 0f);
+                _isWalking = false;
+                if (animator != null)
+                    animator.SetBool(walkingBoolName, false);
             }
         }
     }

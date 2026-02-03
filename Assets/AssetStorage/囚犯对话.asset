@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e031341348e26e2428e23dde6da1c4ee, type: 3}
+  m_Name: "\u56DA\u72AF\u5BF9\u8BDD"
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
+  groupId: "\u56DA\u72AF\u5BF9\u8BDD"
+  startIndex: 1
+  itemObjectName: 
+  functionName: 
+  endClues:
+  - "\u6309 i \u5F00\u5173\u80CC\u5305"
+  - "\u62D6\u62FD\u81F3\u5DE6\u4E0B\u89D2\u4EE5\u7EC4\u88C5"
+  deduplicateEndClues: 1
+  nodes:
+  - content: 
+    isLocked: 0
+    nextIndex: 0
+    tokens: []
+    selection: []
+    channel: 2
+    speakerIndex: 0
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u4F60\u2026\u2026\u4F60\u522B\u8FC7\u6765\u3002"
+    isLocked: 0
+    nextIndex: 2
+    tokens: []
+    selection: []
+    channel: 2
+    speakerIndex: 1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u4F60\u4E3A\u4EC0\u4E48\u4E00\u76F4\u5F80\u540E\u9000\uFF1F"
+    isLocked: 0
+    nextIndex: 3
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 0
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u6211\u8BF4\u4E86\uFF01\u522B\u8FC7\u6765\uFF01"
+    isLocked: 0
+    nextIndex: 4
+    tokens: []
+    selection: []
+    channel: 2
+    speakerIndex: 1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u4F60\u7684<link=Eyes>\u773C\u775B</link>\u4E0D\u5BF9\u3002\u4F60\u7AD9\u5728\u90A3\u513F\u7684\u65F6\u5019\u2026\u2026\u7ED9\u4EBA\u7684\u611F\u89C9\u4E0D\u5BF9\u3002"
+    isLocked: 0
+    nextIndex: 5
+    tokens:
+    - id: Eyes
+      required: 1
+      clicked: 1
+      getPart: {fileID: 11400000, guid: 0f88a158eb3a38d44a5366a88609a30d, type: 2}
+      getClue: 
+      pickupAnimPrefab: {fileID: 3053088715920542615, guid: 5337ab13b142eb848a8293c0902daef4, type: 3}
+    selection: []
+    channel: 2
+    speakerIndex: 1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u4F60\u5728\u8BF4\u4EC0\u4E48\uFF1F\u4EC0\u4E48\u611F\u89C9\u4E0D\u5BF9\uFF1F"
+    isLocked: 0
+    nextIndex: 6
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 0
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\u4F60\u4E0D\u50CF\u5176\u4ED6\u4EBA\uFF0C\u4F60\u7684\u8868\u60C5......\u4E0D\uFF0C\u4F60\u6839\u672C\u6CA1\u6709\u8868\u60C5\uFF01"
+    isLocked: 0
+    nextIndex: 7
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: "\uFF08\u4F60\u89C2\u5BDF\u5E76\u8BB0\u5F55\u4E86\u4ED6\u7684\u8868\u60C5\uFF09\n\u3010\u83B7\u5F97\u5668\u5B98\uFF1A\u6050\u60E7\u7684\u773C\u775B\uFF0C\u5C1D\u8BD5\u88C5\u5907\u4E00\u4E0B\u5427\u3011"
+    isLocked: 0
+    nextIndex: -1
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  speakers:
+  - id: 0
+    displayName: {fileID: 21300000, guid: 59fa9a20db65a4b42a1b78e8401b7178, type: 3}
+    defaultPortrait: {fileID: -4502668526669219185, guid: e55ee86333740194cab71e4bb3844b3d, type: 3}
+  - id: 1
+    displayName: {fileID: -3439286256709557002, guid: 750275437ef1d2f4885a778633bed845, type: 3}
+    defaultPortrait: {fileID: -1257112455736445510, guid: bfef25f6a3a8fdb44b0e557385b040d7, type: 3}

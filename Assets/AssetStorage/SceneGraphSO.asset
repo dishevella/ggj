@@ -14,12 +14,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SceneGraphSO
   nodes:
   - nodeId: 0
-    backgroundSprite: {fileID: 0}
-    spawnPoints: []
-    neighbors: []
+    backgroundSprite: {fileID: 21300000, guid: 981e479a35a8d6a489299fb99dea5558, type: 3}
+    spawnPoints:
+    - {x: 74, y: 155}
+    - {x: 447, y: 155}
+    neighbors:
+    - direction: 1
+      neighborNodeId: 1
+      enterSpawnIndex: 0
+      locked: 0
     nodeLocked: 0
-  - nodeId: 0
-    backgroundSprite: {fileID: 0}
-    spawnPoints: []
-    neighbors: []
+  - nodeId: 1
+    backgroundSprite: {fileID: 21300000, guid: 0d2ed2b58a2a6ee47bde5067e53a5f17, type: 3}
+    spawnPoints:
+    - {x: 74, y: 155}
+    - {x: 447, y: 155}
+    neighbors:
+    - direction: -1
+      neighborNodeId: 0
+      enterSpawnIndex: 1
+      locked: 0
     nodeLocked: 0

@@ -1,10 +1,23 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class ClickNPC : MonoBehaviour
 {
-    [Header("Dialogue")]
-    public DialogueGroupSO group;
+    [Header("Dialogue Rules")]
+    [Tooltip("根据 score 选择对话。默认策略：选 selectScore <= score 的最大一条。")]
+    public List<DialogueRule> rules = new List<DialogueRule>();
+
+    [Tooltip("当前系数（可外部累加）")]
+    public int score = 0;
+
+    [Tooltip("每次点击前先给 score 叠加（可选：例如每点一次更熟悉/更紧张）")]
+    public int clickAddScore = 0;
+
+    [Tooltip("对话正在进行时是否禁止再次点击触发")]
+    public bool blockWhenDialogueOpen = true;
+
     public DialogueManager dialogueManager;
 
     [Header("UI Hint")]
@@ -34,10 +47,11 @@ public class ClickNPC : MonoBehaviour
     public bool allowClickWhenHintHidden = false;
 
     private bool _inRange;
+    private bool _pendingEndAdd = false;
+    private int _pendingAddValue = 0;
 
     void Awake()
     {
-        // npcCollider 必须是“身体”
         if (npcCollider == null)
             npcCollider = GetComponentInChildren<Collider2D>();
 
@@ -46,6 +60,16 @@ public class ClickNPC : MonoBehaviour
 
         if (hintUI != null)
             hintUI.SetActive(false);
+
+        // 订阅对话结束：用于加 endAddScore
+        if (dialogueManager != null)
+            dialogueManager.OnDialogueClosed += OnDialogueClosed;
+    }
+
+    void OnDestroy()
+    {
+        if (dialogueManager != null)
+            dialogueManager.OnDialogueClosed -= OnDialogueClosed;
     }
 
     void Update()
@@ -56,36 +80,126 @@ public class ClickNPC : MonoBehaviour
         if (Mouse.current == null) return;
         if (!Mouse.current.leftButton.wasPressedThisFrame) return;
 
+        if (blockWhenDialogueOpen && dialogueManager != null && dialogueManager.IsOpen)
+            return;
+
         // 1) 必须在范围内
         if (requireInRange && !_inRange) return;
 
-        // 2) 提示UI不显示就不允许点（你自己控制）
+        // 2) 提示UI不显示就不允许点
         if (!allowClickWhenHintHidden && hintUI != null && !hintUI.activeSelf) return;
 
         // 3) 必须点到“身体Collider”
         if (!IsClickedBody()) return;
 
-        // 4) 必须有组、有 StateManager
-        if (group == null) return;
+        // 4) 选择规则
+        if (rules == null || rules.Count == 0) return;
+
+        // 点击累加（可选）
+        if (clickAddScore != 0)
+            score += clickAddScore;
+
+        DialogueRule rule = PickRuleByScore(score);
+        if (rule == null || rule.group == null)
+            return;
+
         if (StateManager.I == null)
         {
             Debug.LogError("[ClickNPC] StateManager.I is null. 场景里需要有 StateManager 并在 Awake 里赋值 I。");
             return;
         }
 
-        StateManager.I.TryStartDialogue(group);
+        // ✅ 先请求 StateManager 试图启动对话
+        bool started = StateManager.I.TryStartDialogue(rule.group);
+        if (!started)
+        {
+            // ❗被禁止/失败：不计数、不挂 pending（最稳）
+            return;
+        }
+
+        // ✅ 到这里说明：对话真的开始了，才允许计数/挂账
+        if (clickAddScore != 0)
+            score += clickAddScore;
+
+        _pendingEndAdd = true;
+        _pendingAddValue = rule.endAddScore;
     }
 
+    // =========================
+    // 外部接口：给别的系统累加系数
+    // =========================
+    public void AddScore(int delta)
+    {
+        score += delta;
+    }
+
+    public void SetScore(int value)
+    {
+        score = value;
+    }
+
+    // =========================
+    // 规则选择：selectScore <= score 中最大者
+    // =========================
+    DialogueRule PickRuleByScore(int currentScore)
+    {
+        DialogueRule best = null;
+        int bestThreshold = int.MinValue;
+
+        for (int i = 0; i < rules.Count; i++)
+        {
+            var r = rules[i];
+            if (r == null || r.group == null) continue;
+
+            if (r.selectScore <= currentScore && r.selectScore >= bestThreshold)
+            {
+                bestThreshold = r.selectScore;
+                best = r;
+            }
+        }
+
+        // 如果一个都没命中，你也可以选择：返回最小 selectScore 的那条作为兜底
+        // 这里我给你做成“兜底最小阈值”更友好：
+        if (best == null)
+        {
+            int min = int.MaxValue;
+            for (int i = 0; i < rules.Count; i++)
+            {
+                var r = rules[i];
+                if (r == null || r.group == null) continue;
+                if (r.selectScore < min) { min = r.selectScore; best = r; }
+            }
+        }
+
+        return best;
+    }
+
+    // =========================
+    // 对话结束：叠加 endAddScore
+    // =========================
+    void OnDialogueClosed()
+    {
+        if (!_pendingEndAdd) return;
+
+        score += _pendingAddValue;
+
+        _pendingEndAdd = false;
+        _pendingAddValue = 0;
+
+        // Debug.Log($"[ClickNPC] Dialogue end add applied. score={score}", this);
+    }
+
+    // =========================
+    // Range & Hint (原样保留)
+    // =========================
     void UpdateRangeState()
     {
-        // 优先用 triggerRange（最稳）
         if (triggerRange != null && player != null)
         {
             _inRange = triggerRange.OverlapPoint(player.position);
             return;
         }
 
-        // 备用：距离判定
         if (useDistanceFallback && player != null)
         {
             float dist = Vector2.Distance(player.position, transform.position);
@@ -93,7 +207,6 @@ public class ClickNPC : MonoBehaviour
             return;
         }
 
-        // 没有任何范围手段：默认不可交互（避免“全图都能点”）
         _inRange = false;
     }
 
@@ -103,8 +216,19 @@ public class ClickNPC : MonoBehaviour
 
         bool shouldShow = _inRange;
 
-        if (hideHintWhenNoGroup && group == null)
-            shouldShow = false;
+        if (hideHintWhenNoGroup)
+        {
+            // 只要 rules 里没可用 group，就隐藏
+            bool hasAny = false;
+            if (rules != null)
+            {
+                for (int i = 0; i < rules.Count; i++)
+                {
+                    if (rules[i] != null && rules[i].group != null) { hasAny = true; break; }
+                }
+            }
+            if (!hasAny) shouldShow = false;
+        }
 
         hintUI.SetActive(shouldShow);
     }
@@ -118,16 +242,12 @@ public class ClickNPC : MonoBehaviour
 
         Vector2 worldPoint = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
 
-        // 用 All：避免点到别的 collider（比如 HintRange）导致误判
         var hits = Physics2D.OverlapPointAll(worldPoint, clickableMask);
         if (hits == null || hits.Length == 0) return false;
 
         foreach (var h in hits)
         {
-            // ✅ 如果你把 triggerRange 的 Layer 也勾进 clickableMask，这里会跳过它
             if (triggerRange != null && h == triggerRange) continue;
-
-            // ✅ 必须命中身体 collider 或其子物体（你有多个身体 collider 时也兼容）
             if (h == npcCollider || h.transform.IsChildOf(npcCollider.transform))
                 return true;
         }
@@ -145,4 +265,12 @@ public class ClickNPC : MonoBehaviour
         }
     }
 #endif
+}
+
+[System.Serializable]
+public class DialogueRule
+{
+    public int selectScore;
+    public DialogueGroupSO group;
+    public int endAddScore;
 }

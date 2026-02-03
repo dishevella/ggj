@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e031341348e26e2428e23dde6da1c4ee, type: 3}
+  m_Name: You failed
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueGroupSO
+  groupId: you faild
+  startIndex: 1
+  itemObjectName: 
+  functionName: 
+  endClues: []
+  deduplicateEndClues: 1
+  nodes:
+  - content: '#0 default'
+    isLocked: 0
+    nextIndex: 0
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: -1
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  - content: '#1 You failed!'
+    isLocked: 0
+    nextIndex: -1
+    tokens: []
+    selection: []
+    channel: 1
+    speakerIndex: 0
+    portraitOverride: {fileID: 0}
+    nameOverride: {fileID: 0}
+  speakers:
+  - id: 1
+    displayName: {fileID: 7519076115162389682, guid: f6d104027eeba8e469f2d3c01e5a6d06, type: 3}
+    defaultPortrait: {fileID: -4509999187885996813, guid: 6e92a80013db7024c841ef6f76055d1e, type: 3}

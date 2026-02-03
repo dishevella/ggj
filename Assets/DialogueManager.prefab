@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4487398418418965403}
-  - component: {fileID: 8143888365067518448}
   m_Layer: 0
   m_Name: DialogueManager
   m_TagString: Untagged
@@ -32,23 +31,3 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8143888365067518448
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 278299198396161639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3b6b0cde677ec349a189c7099590f86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
-  dialogueText: {fileID: 0}
-  selectionRoot: {fileID: 0}
-  selectionButtonPrefab: {fileID: 5934389161898185367, guid: 49a0d8a4ef1e5ef4f9396c278f90ccf3, type: 3}
-  currentGroup: {fileID: 0}
-  overrideStartIndex: 1
-  charInterval: 0.04
-  autoDelay: 1.2
-  autoPlay: 0
