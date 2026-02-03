@@ -444,7 +444,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a51f4aaa0b58fb43b9112f521364af3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickNPC
-  group: {fileID: 11400000, guid: d4bc98e5c4f045a4fb8a006a7f7faccf, type: 2}
+  rules: []
+  score: 0
+  clickAddScore: 0
+  blockWhenDialogueOpen: 1
   dialogueManager: {fileID: 599342799}
   hintUI: {fileID: 0}
   hideHintWhenNoGroup: 1
@@ -2280,6 +2283,7 @@ MonoBehaviour:
   rightPortrait: {fileID: 1695976338}
   rightNameImage: {fileID: 1571734239}
   rightContentText: {fileID: 2026948083}
+  specialObject: {fileID: 0}
   currentGroup: {fileID: 0}
   overrideStartIndex: -1
   charInterval: 0.04
@@ -2509,7 +2513,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -8371792605917163093, guid: 42e102a396f34114daf78881ff674f5c, type: 3}
+  m_Sprite: {fileID: -582392738, guid: 049ae67c45b26b14ba8cccae53d435ba, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -5327,10 +5331,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1053928897}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 26, y: -22}
-  m_SizeDelta: {x: 180.3115, y: 93.16321}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -65.20186, y: 46.5816}
+  m_SizeDelta: {x: 132.622, y: 93.1632}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1912817517
 MonoBehaviour:
@@ -5352,7 +5356,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u8FD9\u662F\u7B2C\u4E00\u6761\u7EBF\u7D22\n\u8FD9\u662F\u7B2C\u4E8C\u6761\u7EBF\u7D22\n\u8FD9\u662F\u7B2C\u4E09\u6761\u7EBF\u7D22\n\u8FD9\u662F\u7B2C\u56DB\u6761\u7EBF\u7D22"
+  m_text: "\u7EBF\u7D221\n\u7EBF\u7D222\n\u7EBF\u7D223\n\u7EBF\u7D224"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: eb10e6e2cd2be654a912247138622edd, type: 2}
   m_sharedMaterial: {fileID: 2120567849490659000, guid: eb10e6e2cd2be654a912247138622edd, type: 2}
@@ -5417,7 +5421,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 34.175606, w: 0}
+  m_margin: {x: 0.55458045, y: 0, z: -0.20516206, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -6205,7 +6209,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StateManager
   state: 0
-  taskPhase: 0
   dialogueManager: {fileID: 599342799}
   player: {fileID: 1654680613}
 --- !u!4 &2055914135
