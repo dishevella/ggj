@@ -19,7 +19,12 @@ MonoBehaviour:
   equipSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}
   effect:
     hostility: 10
-    anger: 0
-    sadness: 0
-    dominance: 0
-    honesty: 0
+    anger: 20
+    sadness: 30
+    dominance: 20
+    honesty: 34
+  placement:
+    overridePlacement: 1
+    anchoredPos: {x: 0, y: 0}
+    rotationZ: 0
+    scale: {x: 1, y: 1}

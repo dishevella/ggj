@@ -18,8 +18,13 @@ MonoBehaviour:
   hintSprite: {fileID: 21300000, guid: a40b846c60ad505408ef182c8a520bb6, type: 3}
   equipSprite: {fileID: 21300000, guid: a40b846c60ad505408ef182c8a520bb6, type: 3}
   effect:
-    hostility: 0
-    anger: 0
-    sadness: 0
-    dominance: 0
-    honesty: 0
+    hostility: 20
+    anger: 40
+    sadness: 38
+    dominance: 38
+    honesty: 21
+  placement:
+    overridePlacement: 1
+    anchoredPos: {x: 0, y: 0}
+    rotationZ: 0
+    scale: {x: 1, y: 1}

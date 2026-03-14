@@ -12,14 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be3d0044719da704dbf639f58e56d7a7, type: 3}
   m_Name: Eye2
   m_EditorClassIdentifier: Assembly-CSharp::PartDefinition
-  id: eye1
+  id: eye2
   type: 0
-  originalSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}
-  hintSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}
-  equipSprite: {fileID: 21300000, guid: 98e679cae2973e0418545f89deada427, type: 3}
+  originalSprite: {fileID: 21300000, guid: 58be0100d9aa8d34da7dfd6740166ae1, type: 3}
+  hintSprite: {fileID: 21300000, guid: 58be0100d9aa8d34da7dfd6740166ae1, type: 3}
+  equipSprite: {fileID: 21300000, guid: 58be0100d9aa8d34da7dfd6740166ae1, type: 3}
   effect:
-    hostility: 10
+    hostility: -10
     anger: 0
     sadness: 0
     dominance: 0
     honesty: 0
+  placement:
+    overridePlacement: 1
+    anchoredPos: {x: -1.2000008, y: 7.300003}
+    rotationZ: 0
+    scale: {x: 0.7017264, y: 0.50415}
